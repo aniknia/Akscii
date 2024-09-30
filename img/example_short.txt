@@ -1,0 +1,28 @@
+Line 0	Marker found
+Line 1	SOILine 2	Marker found
+Line 3	APPLine 5	Length 16
+Line 19	Reset
+Line 20	Marker found
+Line 21	DQTLine 23	Length 67
+Line 88	Reset
+Line 89	Marker found
+Line 90	DQTLine 92	Length 67
+Line 157	Reset
+Line 158	Marker found
+Line 159	SOFLine 161	Length 17
+Line 176	Reset
+Line 177	Marker found
+Line 178	DHTLine 180	Length 31
+Line 209	Reset
+Line 210	Marker found
+Line 211	DHTLine 213	Length 181
+Line 392	Reset
+Line 393	Marker found
+Line 394	DHTLine 396	Length 31
+Line 425	Reset
+Line 426	Marker found
+Line 427	DHTLine 429	Length 181
+Line 608	Reset
+Line 609	Marker found
+Line 610	SOSLine 612	Length 12
+Line 622	Image Data Starts
