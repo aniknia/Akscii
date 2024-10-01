@@ -74,12 +74,7 @@ int setParams(int argc, char *argv[], int *testing, int *testvalue, int *fileout
     return 0;
 	} else {
     if (isnum(argv[depth])) {
-      if (strcmp(lastchangedvalue, "test") == 0) {
-        sscanf(argv[depth], "%d", testvalue);
-        printf("Testing value is %d\n", *testvalue);
-      } else {
-        printf(YEL "Warning" RESET ": You might\'ve forgotten the test flag\n");
-      }
+      // Nothing yet
     } else if (strcmp(argv[depth], "test") == 0) {
 			printf("Testing mode is enabled\n");
 			*testing = 1;
@@ -102,6 +97,8 @@ int setParams(int argc, char *argv[], int *testing, int *testvalue, int *fileout
         *fileout = 0;
         printf("Unrecognized Value: Fileout is set to all\n");
       }
+    } else if (strcmp(lastchangedvalue, "test") == 0) {
+      // No testing flags yet
     } else {
       char *extension = strchr(argv[depth], '.');
       if ((strcasecmp(extension, ".jpg") != 0) && (strcasecmp(extension, ".jpeg") != 0)) {
@@ -223,15 +220,13 @@ int main(int argc, char *argv[]) {
     while ((c = getc(fp)) != EOF) {
       char shortinfo [256] = {0};
 
-      if ((c == FF) && (marker == 0) && (scan != 1)) {
-        strcpy(shortinfo, "Marker found\n");
+      if ((c == FF) && (marker == 0)) {
         marker = 1;
         length = 0;
-
         strcpy(type, "non");
       } else if ((marker == 1) && (strcmp(type, "non") == 0)) {
         switch ((int) c) {
-          case 0: break;
+          case 0: marker = 0; break;
           case SOI: strcpy(type, "SOI"); marker = 0; break;
           case EOI: strcpy(type, "EOI"); marker = 0; break;
           case APP: strcpy(type, "APP"); break;
@@ -246,25 +241,25 @@ int main(int argc, char *argv[]) {
         }
 
         j = 0;
-
-        strcpy(shortinfo, type);
-      } else if ((marker == 1) && (strcmp(type, "non") != 0) && (j <= 2)) {
+        
+        if ((scan != 1) || (strcmp(type, "EOI") == 0)) {
+          strcpy(shortinfo, type);
+        }
+      } else if ((marker == 1) && (strcmp(type, "non") != 0) && (j <= 2) && (scan != 1)) {
         length += (int) c;
         if (j == 2) {
           char lengthstr[16] = {0};
           strcpy(shortinfo, "Length ");
           sprintf(lengthstr, "%d", length);
           strcat(shortinfo, lengthstr);
-          strcat(shortinfo, "\n");
         }
       } else if ((marker == 1) && (strcmp(type, "non") != 0) && (j > 2) && (j <= length)) {
 
 
         if (j == length) {
-          strcpy(shortinfo, "Reset\n");
           marker = 0;
           if (strcmp(type, "SOS") == 0) {
-            strcpy(shortinfo, "Image Data Starts\n");
+            strcpy(shortinfo, "Image Data Starts");
             scan = 1;
           }
         }
@@ -291,6 +286,7 @@ int main(int argc, char *argv[]) {
           strcat(shortline, linenum);
           strcat(shortline, "\t");
           strcat(shortline, shortinfo);
+          strcat(shortline, "\n");
           if (testing) {
             printf("%s", shortline);
           }
