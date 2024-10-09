@@ -290,7 +290,7 @@ int main(int argc, char *argv[]) {
           if (testing) {
             printf("%s", shortline);
           }
-          if ((fileoutvalue == 0) || (fileoutvalue == 1)) {
+          if (fileout && ((fileoutvalue == 0) || (fileoutvalue == 1))) {
             fputs(shortline, sfp);
           }
         }
@@ -309,7 +309,7 @@ int main(int argc, char *argv[]) {
           strcat(verboseline, "none");
         }
         strcat(verboseline, "\n");
-        if ((fileoutvalue == 0) || (fileoutvalue == 2)) {
+        if (fileout && ((fileoutvalue == 0) || (fileoutvalue == 2))) {
           fputs(verboseline, vfp);
         }
       }
@@ -321,11 +321,14 @@ int main(int argc, char *argv[]) {
 	}
 
 	fclose(fp);
-  if (sfp != NULL) {
-    fclose(sfp);
-  }
-  if (vfp != NULL) {
-    fclose(vfp);
+  
+  if (fileout) {
+    if (sfp != NULL) {
+      fclose(sfp);
+    }
+    if (vfp != NULL) {
+      fclose(vfp);
+    }
   }
 	return 0;
 }
