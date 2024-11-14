@@ -148,7 +148,6 @@ int main(int argc, char *argv[]) {
     int charlim = 127;
     int i, j, marker, length, scan;
     i = j = marker = length = scan = 0;
-    char type[4] = "non";
 
     // APP
     char identifier[5] = {0};
@@ -221,13 +220,19 @@ int main(int argc, char *argv[]) {
       char shortinfo [256] = {0};
 
       if ((c == FF) && (marker == 0)) {
-        marker = 1;
+				marker = 1;
         length = 0;
-        strcpy(type, "non");
-      } else if ((marker == 1) && (strcmp(type, "non") == 0)) {
+      } else if (marker == 1) {
         switch ((int) c) {
-          case 0: marker = 0; break;
-          case SOI: strcpy(type, "SOI"); marker = 0; break;
+        	case SOI: marker = 0; break;
+					default: marker = (int) c; break;;
+				}
+
+        j = 0;
+        
+    		char type[4] = "non";
+        switch ((int) c) {
+         	case SOI: strcpy(type, "SOI"); marker = 0; break;
           case EOI: strcpy(type, "EOI"); marker = 0; break;
           case APP: strcpy(type, "APP"); break;
           case APP1: strcpy(type, "EXF"); break;
@@ -240,12 +245,8 @@ int main(int argc, char *argv[]) {
           default: strcpy(type, "UNK"); break;;
         }
 
-        j = 0;
-        
-        if ((scan != 1) || (strcmp(type, "EOI") == 0)) {
-          strcpy(shortinfo, type);
-        }
-      } else if ((marker == 1) && (strcmp(type, "non") != 0) && (j <= 2) && (scan != 1)) {
+				strcpy(shortinfo, type);
+      } else if ((marker > 1) && (j <= 2) && (scan != 1)) {
         length += (int) c;
         if (j == 2) {
           char lengthstr[16] = {0};
@@ -253,17 +254,29 @@ int main(int argc, char *argv[]) {
           sprintf(lengthstr, "%d", length);
           strcat(shortinfo, lengthstr);
         }
-      } else if ((marker == 1) && (strcmp(type, "non") != 0) && (j > 2) && (j <= length)) {
+      } else if ((marker > 1) && (j > 2) && (j <= length) && (scan != 1)) {
 
 
         if (j == length) {
-          marker = 0;
-          if (strcmp(type, "SOS") == 0) {
+					if (marker != SOS) {
+          	marker = 0;
+					} else {
             strcpy(shortinfo, "Image Data Starts");
             scan = 1;
           }
         }
       } else {
+				if (c == FF) {
+					c = getc(fp);
+					i++;
+					// ERROR: code is iterating correctly but the comparison
+					// between c and EOF is not happening correctly
+					printf("%d\n", c);
+					if (c == EOF) {
+						printf("END");
+						strcpy(shortinfo, "End Of File");
+					}
+				}
         // Do nothing
       }
      
