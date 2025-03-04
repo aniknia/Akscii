@@ -9,7 +9,7 @@
 Akscii is a tool that converts JPEG images into ASCII art. The name comes from the Farsi word "aksi" (meaning "picture") combined with ASCII, reflecting the tool’s purpose of transforming images into text. This project demonstrates low-level image processing by decompressing JPEG files entirely from scratch and logging detailed image data in a human-readable format.
 
 ## Table of Contents
-- [Overview](#Overview)
+- [Development](#Development)
 - [Features](#Features)
 - [Architecture](#Architecture)
 - [Installation](#Installation)
@@ -17,13 +17,24 @@ Akscii is a tool that converts JPEG images into ASCII art. The name comes from t
 - [Development](#Development)
 - [License](#License)
 
-## Overview
+## Development
 
 Akscii is designed to be both a practical utility and a showcase of advanced programming skills. The tool performs the following tasks:
 
-- JPEG Decompression: Reads and decompresses JPEG images from scratch.
-- ASCII Conversion: Translates the decompressed image data into ASCII art.
-- Data Logging: Provides detailed, human-readable logs of the image data for debugging and analysis.
+- [ ] JPEG Decompression: Reads and decompresses JPEG images from scratch.
+  - [x] Decompress JPEG format into segments
+  - [x] Collect Huffman tables
+  - [x] Collect Quantization tables
+  - [ ] Recontruct quantized data
+  - [ ] Fill in color
+  - [ ] Convert to RBG (or grayscale)
+- [ ] ASCII Conversion: Translates the decompressed image data into ASCII art.
+  - [ ] Basic
+    - [ ] Convert grayscale to ascii
+  - [ ] Advanced (tbd)
+- [ ] Data Logging: Provides detailed, human-readable logs of the image data for debugging and analysis.
+  - [x] Output basic information from decompressed Jpeg
+  - [ ] Output verbose information during recontruction process
 
 ## Architecture
 
