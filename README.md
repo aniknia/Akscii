@@ -23,8 +23,8 @@ Akscii is designed to be both a practical utility and a showcase of advanced pro
 
 - [ ] JPEG Decompression: Reads and decompresses JPEG images from scratch.
   - [x] Decompress JPEG format into segments
-  - [x] Collect Huffman tables
-  - [x] Collect Quantization tables
+  - [ ] Collect Huffman tables
+  - [ ] Collect Quantization tables
   - [ ] Recontruct quantized data
   - [ ] Fill in color
   - [ ] Convert to RBG (or grayscale)
@@ -33,14 +33,18 @@ Akscii is designed to be both a practical utility and a showcase of advanced pro
     - [ ] Convert grayscale to ascii
   - [ ] Advanced (tbd)
 - [ ] Data Logging: Provides detailed, human-readable logs of the image data for debugging and analysis.
-  - [x] Output basic information from decompressed Jpeg
-  - [ ] Output verbose information during recontruction process
+  - [x] Output program health
+  - [ ] Decompression Logs
+    - [ ] Output basic information from decompressed JPEG
+    - [x] Output verbose information from decompressing JPEG
+  - [ ] Reconstruction Logs
+    - [ ] Output basic information from decompressed JPEG
+    - [ ] Output verbose information from decompressing JPEG
 
 ## Architecture
 
 Akscii is organized into several key components:
-- Image Loader: Reads the JPEG file and extracts raw image data.
-- Decompression Engine: Implements the JPEG decompression algorithm from scratch.
+- Decoder Module: Reads the JPEG file and extracts raw image data then implements the JPEG decompression algorithm from scratch.
 - ASCII Converter: Maps image pixels to ASCII characters to create the final art.
 - Logging Module: Provides comprehensive logging of the image data, offering insights into the decompression and conversion processes.
 
@@ -68,16 +72,13 @@ To convert a JPEG image into ASCII art, run the executable with the image file a
 
     ./akscii path/to/image.jpg
 
-The tool will output the ASCII art directly to the terminal. For detailed logging information, you can enable verbose mode (if implemented):
+The tool will output the ASCII art directly to the terminal. For detailed logging information, you can enable verbose mode:
 
-    ./akscii path/to/image.jpg --verbose
+    ./akscii path/to/image.jpg -v
 
-## Development
+To output either summarized or verbose logged information to a file, you can enable the file output:
 
-Akscii is an evolving project. Current development highlights include:
-
-- Image Data Extraction: Successfully pulling raw JPEG data.
-- Logging Functionality: In-progress work on a comprehensive logging module to present data in a human-readable format.
+    ./akscii path/to/image.jpg -o -v
 
 ## License
 
