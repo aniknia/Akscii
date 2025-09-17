@@ -18,4 +18,3 @@ Line 429	Length 181
 Line 610	SOS
 Line 612	Length 12
 Line 622	Image Data Starts
-Line 23716	EOI

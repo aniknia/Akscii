@@ -78,6 +78,6 @@ int main(int argc, char *argv[]) {
 
   log_init(image, fileout, verbose);
   decode_JPEG(image);
-  
+
   return 0;
 }
