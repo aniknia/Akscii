@@ -1,16 +1,10 @@
-#ifndef DECODER_H
-#define DECODER_H
+#ifndef DECODE_H
+#define DECODE_H
 
 #include <stdio.h>
+#include <string.h>
 
-#define RED   "\x1B[31m"
-#define GRN   "\x1B[32m"
-#define YEL   "\x1B[33m"
-#define BLU   "\x1B[34m"
-#define MAG   "\x1B[35m"
-#define CYN   "\x1B[36m"
-#define WHT   "\x1B[37m"
-#define RESET "\x1B[0m"
+#include "log.h"
 
 #define FF 255
 #define SOI 0xD8    //Start of Image
@@ -59,6 +53,6 @@
 #define DQT 0xDB    //Define Quantization Table
 #define DRI 0xDD    //Define Restart Interval
 
-int decodeJPEG(char image[256]);
+int decode_JPEG(char image[256]);
 
 #endif

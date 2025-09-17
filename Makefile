@@ -1,3 +1,3 @@
-akscii: src/main.c
+akscii: src/main.c src/log.c src/decode.c
 	@echo "Compiling Akscii"
-	gcc src/main.c -o akscii
+	gcc -Iinclude src/main.c src/decode.c src/log.c -o akscii

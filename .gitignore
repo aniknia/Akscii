@@ -31,6 +31,9 @@
 # macOS Desktop Store files
 *.DS_Store
 
+# VS Code files
+.vscode/*
+
 # Executables
 *.exe
 *.out
@@ -57,3 +60,6 @@ dkms.conf
 
 # Images for testing
 img/testing/*
+
+# Logs
+logs/*

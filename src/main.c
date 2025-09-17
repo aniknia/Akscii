@@ -2,16 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "decoder.h"
 
-#define RED   "\x1B[31m"
-#define GRN   "\x1B[32m"
-#define YEL   "\x1B[33m"
-#define BLU   "\x1B[34m"
-#define MAG   "\x1B[35m"
-#define CYN   "\x1B[36m"
-#define WHT   "\x1B[37m"
-#define RESET "\x1B[0m"
+#include "decode.h"
+#include "log.h"
 
 
 int isnum(char str[]) {
@@ -23,67 +16,68 @@ int isnum(char str[]) {
   return 0;
 }
 
-int setParams(int argc, char *argv[], char *image, char *mode, int depth, char lastchangedvalue[5]) {
-  char lastreadvalue[5] = "none";
+//change to add concise, verbose, and message option
+int setParams(int argc, char *argv[], int depth, char *image, int *fileoutptr, int *verboseptr) {
   if (argc == depth) {
     return 0;
 	} else {
     if (isnum(argv[depth])) {
       // Nothing yet
-    } else if (strcmp(argv[depth], "mode") == 0) {
-      strcpy(lastreadvalue, "mode");
-    } else if(strcmp(lastreadvalue, "none") != 0) {
-      // Setting mode
-      if(strcmp(lastreadvalue, "mode") == 0) {
-        if(strcmp(argv[depth], "decode")) {
-          strcpy(mode, "decode");
-          printf("Set mode to decode\n");
-        } else if(strcmp(argv[depth], "encode") == 0) {
-          strcpy(mode, "encode");
-          printf("Set mode to encode\n");
-        }
-      }
+    } else if (strcmp(argv[depth], "-o") == 0) {
+      // Checks for fileout flag
+      *fileoutptr = 1;
+      log_status(0, "Set fileout to true");
+    } else if (strcmp(argv[depth], "-v") == 0) {
+      // Checks for verbose flag
+      *verboseptr = 1;
+      log_status(0, "Set verbose to true");
     } else {
       // Assume an image file
       char *extension = strchr(argv[depth], '.');
       if ((strcasecmp(extension, ".jpg") != 0) && (strcasecmp(extension, ".jpeg") != 0)) {
+        char msg[512];
+        snprintf(msg, sizeof(msg), "%s does not have an acceptable extension", argv[depth]);
+        log_status(1, msg);
         return 1;
       }
-      printf("Image was an acceptable format\n");
+      log_status(0, "Image was an acceptable format");
 
       // Tests that file can be opened
       FILE *file = fopen(argv[depth], "r");
       if (file == NULL) {
+        char msg[512];
+        snprintf(msg, sizeof(msg), "Failed to open %s", argv[depth]);
+        log_status(1, msg);
         return 2;
       }
       fclose(file);
 
       strcpy(image, argv[depth]);
+
+      char msg[512];
+      snprintf(msg, sizeof(msg), "%s exists", argv[depth]);
+      log_status(0, msg);
     }
   }
 
   depth++;
 
-  return setParams(argc, argv, image, depth, lastreadvalue);
+  return setParams(argc, argv, depth, image, fileoutptr, verboseptr);
 }
 
 int main(int argc, char *argv[]) {
 	char image[256] = "img/example.jpg";
-  char mode[256] = "decode";
+  int fileout = 0;
+  int verbose = 0;
 
-  if (argc > 1) {
-    switch (setParams(argc, argv, image, mode, 1, "none")) {
-      case 1: printf(RED "Error" RESET ": Only JPEGs are supported\n"); return 1;
-      case 2: printf(RED "Error" RESET ": Image does not exist in the specified location\n"); return 2;
-      default: printf(GRN "Success" RESET ": Running Akscii\n");
-    }
+  switch (setParams(argc, argv, 1, image, &fileout, &verbose)) {
+    case 1: log_status(1, "Only JPEGs are supported"); return 1;
+    case 2: log_status(1, "Image does not exist in the specified location"); return 2;
+    default: log_status(0, "Running Akscii");
   }
 
-    printf("Image: %s\n", image);
-
-  if(strcmp(mode, "decode") == 0) {
-    decoder.decodeJPEG(image);
-  }
+  log_init(image, fileout, verbose);
+  decode_JPEG(image);
   
   return 0;
 }
