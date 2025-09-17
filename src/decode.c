@@ -6,9 +6,8 @@ int decode_JPEG(char image[256]) {
   if ((fp = fopen(image, "r")) == NULL) {
 		log_status(1, "Image could not be opened");
 	} else {
-    char msg[128];
-    strcpy(msg, image);
-    strcat(msg, " opened");
+    char msg[1024];
+    snprintf(msg, sizeof(msg), "%s opened", image);
     log_status(0, msg);
   }
   
@@ -61,8 +60,7 @@ int decode_JPEG(char image[256]) {
 
       i = 0;
         
-      if ((scan != 1) || (strcmp(type, "EOI") == 0)) {
-      }
+      if ((scan != 1) || (strcmp(type, "EOI") == 0)) {}
     } else if ((marker == 1) && (strcmp(type, "non") != 0) && (i <= 2) && (scan != 1)) {
       length += (int) currentChar;
       if (i == 2) {
