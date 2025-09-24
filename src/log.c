@@ -50,15 +50,6 @@ void log_init(char *image, int fileoutFlag, int verboseFlag) {
   }
 }
 
-char* get_time() {
-  static char currentTime[64];
-  char format[20] = "%Y-%m-%d %Hh%Mm%Ss";
-
-  time_t now = time(NULL);
-  strftime(currentTime, sizeof(currentTime), format, localtime(&now));
-  return currentTime;
-}
-
 void log_status(int messageType, char *info) {
   char time[64];
   char msgType[64];
@@ -81,18 +72,18 @@ void log_status(int messageType, char *info) {
 
   snprintf(msg, sizeof(msg), "%s%s%s\n", time, msgType, info);
 
-  if (fileout) {
-    log_fileout(msg);
-  }
+  log_msg(msg);
 
-  printf("%s", msg);
   return;
 }
 
-void log_summary(){
+void log_summary(char* markerCode, int length){
   char msg[1024];
 
   // TODO: log the marker plus info like length, version, units, etc
+  snprintf(msg, sizeof(msg), "Marker: %s \t Length: %d\n", markerCode, length);
+
+  log_msg(msg);
 
   return;
 }
@@ -107,25 +98,35 @@ void log_verbose(int lineNumber, int currentChar) {
     snprintf(msg, sizeof(msg), "Line: %-8d Decimal: %-8d Hex: %-8X Character: %c\n", lineNumber, currentChar, currentChar, currentChar);
   }
 
-  if (fileout) {
-    log_fileout(msg);
-  }
+  log_msg(msg);
 
-  printf("%s", msg);
   return;
 }
 
-void log_fileout(char* message) {
-  FILE *fp;
-  fp = fopen(logFile, "a");
+void log_msg(char* message) {
+  if(fileout) {
+    FILE *fp;
+    fp = fopen(logFile, "a");
 
-  char fileoutput[strlen(message) + 2];
-  snprintf(fileoutput, sizeof(fileoutput), "%s", message);
+    char fileoutput[strlen(message) + 2];
+    snprintf(fileoutput, sizeof(fileoutput), "%s", message);
 
-  fputs(fileoutput, fp);
-  fclose(fp);
+    fputs(fileoutput, fp);
+    fclose(fp);
+  }
+
+  printf("%s", message);
 
   return;
+}
+
+char* get_time() {
+  static char currentTime[64];
+  char format[20] = "%Y-%m-%d %Hh%Mm%Ss";
+
+  time_t now = time(NULL);
+  strftime(currentTime, sizeof(currentTime), format, localtime(&now));
+  return currentTime;
 }
 
 int get_fileout() {

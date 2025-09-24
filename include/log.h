@@ -29,7 +29,7 @@ void log_init(char *image, int fileoutFlag, int verboseFlag);
 void log_status(int messageType, char *info); // Log a status
 void log_summary(char* marker, int length); // Log a summary of the marker (for now marker and length)
 void log_verbose(int lineNumber, int currentChar); // Log the line and character
-void log_fileout(char* message); // Output message to file
+void log_msg(char* message); // Output message message
 
 char* get_time();
 int get_fileout();
