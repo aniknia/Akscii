@@ -74,40 +74,6 @@ struct MARKER {
 
 };
 
-struct APP_d {
-  int length;
-  char identifier[5];
-  int versionMajor;
-  int versionMinor;
-  int units;
-  int densityX;
-  int densityY;
-  int thumbnailX;
-  int thumbnailY;
-};
-
-struct DQT_d {
-  int length;
-};
-
-struct SOF_d {
-  int length;
-};
-
-struct DHT_d {
-  int length;
-};
-
-struct SOS_d {
-  int length;
-};
-
-// TODO: Check the largest amount of image data that could exist in an image
-struct ID_d {
-  int length;
-  int data[524288]; // pow(2, 19)
-};
-
 int decode_JPEG(char image[256]);
 
 #endif
