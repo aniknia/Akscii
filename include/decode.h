@@ -53,6 +53,61 @@
 #define DQT 0xDB    //Define Quantization Table
 #define DRI 0xDD    //Define Restart Interval
 
+// TODO: Should i combine these into a single struct that includes a marker name?
+// Maybe thatll make it easier to pass it generically to the log function.
+// It might also make the code more generic and hygenic.
+
+struct MARKER {
+  char marker[4];
+  int length;
+  int *data; // use malloc at runtime (maybe 524288 numbers?)
+
+  // APP
+  char identifier[5];
+  int versionMajor;
+  int versionMinor;
+  int units;
+  int densityX;
+  int densityY;
+  int thumbnailX;
+  int thumbnailY;
+
+};
+
+struct APP_d {
+  int length;
+  char identifier[5];
+  int versionMajor;
+  int versionMinor;
+  int units;
+  int densityX;
+  int densityY;
+  int thumbnailX;
+  int thumbnailY;
+};
+
+struct DQT_d {
+  int length;
+};
+
+struct SOF_d {
+  int length;
+};
+
+struct DHT_d {
+  int length;
+};
+
+struct SOS_d {
+  int length;
+};
+
+// TODO: Check the largest amount of image data that could exist in an image
+struct ID_d {
+  int length;
+  int data[524288]; // pow(2, 19)
+};
+
 int decode_JPEG(char image[256]);
 
 #endif
