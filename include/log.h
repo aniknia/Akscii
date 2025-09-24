@@ -27,7 +27,7 @@ static char logFile[256 + 64] = {0};
 
 void log_init(char *image, int fileoutFlag, int verboseFlag);
 void log_status(int messageType, char *info); // Log a status
-void log_summary(); // Log a summary of the marker
+void log_summary(char* marker, int length); // Log a summary of the marker (for now marker and length)
 void log_verbose(int lineNumber, int currentChar); // Log the line and character
 void log_fileout(char* message); // Output message to file
 
