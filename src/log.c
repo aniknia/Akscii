@@ -91,14 +91,17 @@ void log_summary(char* markerCode, int length){
 void log_verbose(int lineNumber, int currentChar) {
   char msg[1024];
 
-  // TODO: This should be reworked to remove the edge case
-  if (currentChar == 0) {
-    snprintf(msg, sizeof(msg), "Line: %-8d Decimal: %-8d Hex: %-8X Character: none\n", lineNumber, currentChar, currentChar);
-  } else {
-    snprintf(msg, sizeof(msg), "Line: %-8d Decimal: %-8d Hex: %-8X Character: %c\n", lineNumber, currentChar, currentChar, currentChar);
-  }
+  if (verbose) {
+    // TODO: This should be reworked to remove the edge case
+    if (currentChar == 0) {
+      snprintf(msg, sizeof(msg), "Line: %-8d Decimal: %-8d Hex: %-8X Character: none\n", lineNumber, currentChar, currentChar);
+    } else {
+      snprintf(msg, sizeof(msg), "Line: %-8d Decimal: %-8d Hex: %-8X Character: %c\n", lineNumber, currentChar, currentChar, currentChar);
+    }
 
-  log_msg(msg);
+    log_msg(msg);
+    
+  }
 
   return;
 }
