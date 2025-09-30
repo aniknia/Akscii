@@ -58,6 +58,7 @@ int decode_JPEG(char image[256]) {
           markerStatus = 0;
           if (marker[currentMarker++].code == SOS) {
             scanStatus = 1;
+            // FIXME: img data doesnt have a fixed size
             marker[currentMarker].data = malloc(64 * 1024 * 1024);
           }
         } else {
