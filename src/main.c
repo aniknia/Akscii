@@ -43,7 +43,7 @@ int setParams(int argc, char *argv[], int depth, char *image, int *fileoutptr, i
       log_status(0, "Image was an acceptable format");
 
       // Tests that file can be opened
-      FILE *file = fopen(argv[depth], "r");
+      FILE *file = fopen(argv[depth], "rb");
       if (file == NULL) {
         char msg[512];
         snprintf(msg, sizeof(msg), "Failed to open %s", argv[depth]);

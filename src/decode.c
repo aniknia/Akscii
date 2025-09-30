@@ -3,89 +3,95 @@
 int decode_JPEG(char image[256]) {
   FILE *fp;
 
-  if ((fp = fopen(image, "r")) == NULL) {
+  if ((fp = fopen(image, "rb")) == NULL) {
 		log_status(1, "Image could not be opened");
 	} else {
     char msg[1024];
     snprintf(msg, sizeof(msg), "%s opened", image);
     log_status(0, msg);
   }
-  
 
   int currentChar;
-  int charbot = 32;
-  int charlim = 127;
-  int line, i, marker, length, scan;
-  line = i = marker = length = scan = 0;
-  char type[4] = "non";
+  int line, markerStatus, markerPosition, scanStatus, scanPosition;
+  line = markerStatus = markerPosition = scanStatus, scanPosition = 0;
 
-  // APP (Application)
-  char identifier[5] = {0};
-  int versionMajor = 0;
-  int versionMinor = 0;
-  int units = 0;
-  int densityX = 0;
-  int densityY = 0;
-  int thumbnailX = 0;
-  int thumbnailY = 0;
-
-  // DQT (Quantization Table)
-    
-  // SOF (Start of Frame)
-
-  // DHT (Huffman Table)
-
-  // Image Data
+  // Array or markers
+  struct MARKER marker[1024];
+  int currentMarker = 0;
 
   while ((currentChar = getc(fp)) != EOF) {
-    if ((currentChar == FF) && (marker == 0)) {
-      marker = 1;
-      length = 0;
-      strcpy(type, "non");
-    } else if ((marker == 1) && (strcmp(type, "non") == 0)) {
-      switch ((int) currentChar) {
-        case 0: marker = 0; break;
-        case SOI: strcpy(type, "SOI"); marker = 0; break;
-        case EOI: strcpy(type, "EOI"); marker = 0; break;
-        case APP: strcpy(type, "APP"); break;
-        case APP1: strcpy(type, "EXF"); break;
-        case DQT: strcpy(type, "DQT"); break;
-        case SOF: strcpy(type, "SOF"); break;
-        case DHT: strcpy(type, "DHT"); break;
-        case DRI: strcpy(type, "DRI"); break;
-        case SOS: strcpy(type, "SOS"); break;
-        case COM: strcpy(type, "COM"); break;
-        default: strcpy(type, "UNK"); break;;
+    log_verbose(line, currentChar);
+
+    if ((currentChar == FF) && (markerStatus == 0) && (scanStatus == 0)) {
+      // Not in a Marker
+      // Not Scanning image data
+      markerStatus = 1;
+      markerPosition = 0;
+
+      // Get next identifier
+      currentChar = getc(fp);
+      log_verbose(++line, currentChar);
+
+      // Identifying markerStatus
+      marker[currentMarker].code = currentChar;
+      if (currentChar == SOI) {
+        log_summary(marker[currentMarker]);
+        currentMarker++;
+        markerStatus = 0;
+      } else if (currentChar == EOI) {
+        log_summary(marker[currentMarker]);
+        break;
       }
-
-      i = 0;
-        
-      if ((scan != 1) || (strcmp(type, "EOI") == 0)) {}
-    } else if ((marker == 1) && (strcmp(type, "non") != 0) && (i <= 2) && (scan != 1)) {
-      length += (int) currentChar;
-      if (i == 2) {
-        char lengthstr[16] = {0};
+    } else if (markerStatus == 1) {
+      // log_status (2, "in marker status loop");
+      if (markerPosition < 2) {
+        // Get Length
+        if (markerPosition == 0) {
+          marker[currentMarker].length += currentChar << 8;
+        } else if (markerPosition == 1) {
+          marker[currentMarker].length |= currentChar;
+        }
+      } else {
+        // Get Marker Data
+        if (markerPosition == (marker[currentMarker].length - 1)) {
+          log_summary(marker[currentMarker]);
+          markerStatus = 0;
+          if (marker[currentMarker++].code == SOS) {
+            scanStatus = 1;
+            marker[currentMarker].data = malloc(64 * 1024 * 1024);
+          }
+        } else {
+          
+        }
       }
-    } else if ((marker == 1) && (strcmp(type, "non") != 0) && (i > 2) && (i <= length)) {
-
-
-      if (i == length) {
-        marker = 0;
-        if (strcmp(type, "SOS") == 0) {
-          scan = 1;
+      markerPosition++;
+    } else if (scanStatus == 1) {
+      if (currentChar != FF) {
+        marker[currentMarker].data[scanPosition++] = currentChar;
+      } else {
+        int nextChar = getc(fp);
+        if (nextChar == 0x00) {
+          marker[currentMarker].data[scanPosition++] = FF;
+        } else {
+          ungetc(nextChar, fp);
+          ungetc(currentChar, fp);
+          scanStatus = 0;
+          scanPosition = 0;
+          currentMarker++;
         }
       }
     } else {
-      // Do nothing
+      log_status(1, "error occured");
     }
-
-    if (get_verbose()) {
-      log_verbose(line, currentChar);
-    }
+    
     line++;
   }
   
 	fclose(fp);
 
 	return 0;
+}
+
+int decode_unpackJPEG(FILE *fp, struct MARKER *marker) {
+  return 0;
 }

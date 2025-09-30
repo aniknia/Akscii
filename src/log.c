@@ -42,7 +42,7 @@ void log_init(char *image, int fileoutFlag, int verboseFlag) {
     fileout++;
     fclose(fp);
 
-    char msg[512];
+    char msg[1024];
     snprintf(msg, sizeof(msg), "Starting log for %s", image);
     log_status(0, msg);
 
@@ -70,18 +70,34 @@ void log_status(int messageType, char *info) {
       snprintf(msgType, sizeof(msgType), "%sSuccess%s: ", GRN, RESET);
   }
 
-  snprintf(msg, sizeof(msg), "%s%s%s\n", time, msgType, info);
+  snprintf(msg, sizeof(msg), "%s%s%s", time, msgType, info);
 
   log_msg(msg);
 
   return;
 }
 
-void log_summary(char* markerCode, int length){
+void log_summary(struct MARKER marker){
   char msg[1024];
+  char markerName[4];
 
   // TODO: log the marker plus info like length, version, units, etc
-  snprintf(msg, sizeof(msg), "Marker: %s \t Length: %d\n", markerCode, length);
+
+  switch (marker.code) {
+        case SOI: snprintf(markerName, sizeof(markerName), "SOI"); break;
+        case EOI: snprintf(markerName, sizeof(markerName), "EOI"); break;
+        case APP: snprintf(markerName, sizeof(markerName), "APP"); break;
+        case APP1: snprintf(markerName, sizeof(markerName), "EXF"); break;
+        case DQT: snprintf(markerName, sizeof(markerName), "DQT"); break;
+        case SOF: snprintf(markerName, sizeof(markerName), "SOF"); break;
+        case DHT: snprintf(markerName, sizeof(markerName), "DHT"); break;
+        case DRI: snprintf(markerName, sizeof(markerName), "DRI"); break;
+        case SOS: snprintf(markerName, sizeof(markerName), "SOS"); break;
+        case COM: snprintf(markerName, sizeof(markerName), "COM"); break;
+        default: snprintf(markerName, sizeof(markerName), "UNK"); break;
+  }
+
+  snprintf(msg, sizeof(msg), "Marker: %s \t Length: %d", markerName, marker.length);
 
   log_msg(msg);
 
@@ -94,9 +110,9 @@ void log_verbose(int lineNumber, int currentChar) {
   if (verbose) {
     // TODO: This should be reworked to remove the edge case
     if (currentChar == 0) {
-      snprintf(msg, sizeof(msg), "Line: %-8d Decimal: %-8d Hex: %-8X Character: none\n", lineNumber, currentChar, currentChar);
+      snprintf(msg, sizeof(msg), "Line: %-8d Decimal: %-8d Hex: %-8X Character: none", lineNumber, currentChar, currentChar);
     } else {
-      snprintf(msg, sizeof(msg), "Line: %-8d Decimal: %-8d Hex: %-8X Character: %c\n", lineNumber, currentChar, currentChar, currentChar);
+      snprintf(msg, sizeof(msg), "Line: %-8d Decimal: %-8d Hex: %-8X Character: %c", lineNumber, currentChar, currentChar, currentChar);
     }
 
     log_msg(msg);
@@ -112,13 +128,13 @@ void log_msg(char* message) {
     fp = fopen(logFile, "a");
 
     char fileoutput[strlen(message) + 2];
-    snprintf(fileoutput, sizeof(fileoutput), "%s", message);
+    snprintf(fileoutput, sizeof(fileoutput), "%s\n", message);
 
     fputs(fileoutput, fp);
     fclose(fp);
   }
 
-  printf("%s", message);
+  printf("%s\n", message);
 
   return;
 }
