@@ -30,6 +30,7 @@ int decode_JPEG(char image[256]) {
 
       // Get next identifier
       currentChar = getc(fp);
+      line++;
       log_verbose(++line, currentChar);
 
       // Identifying markerStatus
@@ -51,19 +52,20 @@ int decode_JPEG(char image[256]) {
         } else if (markerPosition == 1) {
           marker[currentMarker].length |= currentChar;
         }
-      } else {
-        // Get Marker Data
-        if (markerPosition == (marker[currentMarker].length - 1)) {
-          log_summary(marker[currentMarker]);
-          markerStatus = 0;
-          if (marker[currentMarker++].code == SOS) {
-            scanStatus = 1;
-            // FIXME: img data doesnt have a fixed size
-            marker[currentMarker].data = malloc(64 * 1024 * 1024);
-          }
-        } else {
-          
+      } else if ((markerPosition >= 2) && (markerPosition < marker[currentMarker].length - 1)) {
+        // TODO: Grab Marker Data
+
+
+      } else if (markerPosition == (marker[currentMarker].length - 1)) {
+        log_summary(marker[currentMarker]);
+        markerStatus = 0;
+        if (marker[currentMarker++].code == SOS) {
+          scanStatus = 1;
+          // FIXME: img data doesnt have a fixed size
+          marker[currentMarker].data = malloc(64 * 1024 * 1024);
         }
+      } else {
+        log_status(0, "error in marker data occured");
       }
       markerPosition++;
     } else if (scanStatus == 1) {
