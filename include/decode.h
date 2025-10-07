@@ -9,7 +9,12 @@
 #include "marker.h"
 
 int decode_JPEG(char image[256]);
-int decode_unpackJPEG(FILE *fp, struct MARKER *marker);
 void decode_unpackMarker(FILE *fp, struct MARKER *marker, int *line);
+void decode_unpackUKN(FILE *fp, struct MARKER *marker, int *line);
+void decode_unpackAPP(FILE *fp, struct MARKER *marker, int *line);
+void decode_unpackDQT(FILE *fp, struct MARKER *marker, int *line);
+void decode_unpackSOF(FILE *fp, struct MARKER *marker, int *line);
+void decode_unpackDHT(FILE *fp, struct MARKER *marker, int *line);
+void decode_unpackSOS(FILE *fp, struct MARKER *marker, int *line);
 
 #endif

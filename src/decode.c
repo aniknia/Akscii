@@ -11,7 +11,7 @@ int decode_JPEG(char image[256]) {
     log_status(0, msg);
   }
 
-  int markerStatus, scanStatus = 1;
+  int markerStatus, scanStatus = 0;
   int currentChar;
   int line, markerPosition, scanPosition = 0;
 
@@ -35,14 +35,15 @@ int decode_JPEG(char image[256]) {
         currentMarker++;
         markerStatus = 0;
         continue;
-      } else if (marker[currentMarker].code == EOI) {
+      }
+      if (marker[currentMarker].code == EOI) {
         log_summary(marker[currentMarker]);
         break;
-      } else {
-        // Unpack Marker
-        decode_unpackMarker(fp, &marker[currentMarker], &line);
-        log_summary(marker[currentMarker]);
       }
+      
+      // Unpack Marker
+      decode_unpackMarker(fp, &marker[currentMarker], &line);
+      log_summary(marker[currentMarker]);
 
       // Checking for Start of Scan
       if (marker[currentMarker++].code == SOS) {
@@ -51,20 +52,21 @@ int decode_JPEG(char image[256]) {
         marker[currentMarker].data = malloc(64 * 1024 * 1024);
       }
     } else {
-      if (currentChar != FF) {
-        marker[currentMarker].data[scanPosition++] = currentChar;
-      } else {
+      if (currentChar == FF) {
         int nextChar = getc(fp);
+        log_verbose(++line, nextChar);
         if (nextChar == 0x00) {
-          marker[currentMarker].data[scanPosition++] = FF;
+          marker[currentMarker].data[marker[currentMarker].length++] = FF;
           continue;
         }
         ungetc(nextChar, fp);
         ungetc(currentChar, fp);
+        line = line - 2;
         scanStatus = 0;
-        scanPosition = 0;
         currentMarker++;
+        continue;
       }
+      marker[currentMarker].data[marker[currentMarker].length++] = currentChar;
     }
     
     line++;
@@ -75,10 +77,6 @@ int decode_JPEG(char image[256]) {
 	return 0;
 }
 
-int decode_unpackJPEG(FILE *fp, struct MARKER *marker) {
-  return 0;
-}
-
 void decode_unpackMarker(FILE *fp, struct MARKER *marker, int *line) {
   int currentChar = 0;
   // Grab Marker length
@@ -86,15 +84,111 @@ void decode_unpackMarker(FILE *fp, struct MARKER *marker, int *line) {
     currentChar = getc(fp);
     log_verbose(++(*line), currentChar);
     if (i == 0) {
-      marker->length += currentChar << 8;
+      marker->length = currentChar << 8;
     } else {
       marker->length |= currentChar;
     }
   }
   // Grab Marker Data
-  for (int j = 2; j < (marker->length); j++) {
+  switch (marker->code) {
+    case APP: decode_unpackAPP(fp, marker, line); break;
+    case DQT: decode_unpackDQT(fp, marker, line); break;
+    case SOF: decode_unpackSOF(fp, marker, line); break;
+    case DHT: decode_unpackDHT(fp, marker, line); break;
+    case SOS: decode_unpackSOS(fp, marker, line); break;
+    default: log_status(1, "this marker hasnt been implemented yet"); decode_unpackUKN(fp, marker, line);
+  }
+
+}
+
+// TODO: Try to consolidate these calls, maybe look at dispatch tables?
+void decode_unpackUKN(FILE *fp, struct MARKER *marker, int *line) {
+  int currentChar = 0;
+  for (int i = 2; i < (marker->length); i++) {
     currentChar = getc(fp);
     log_verbose(++(*line), currentChar);
-    // printf("%d\n", j);
+  }
+}
+
+void decode_unpackAPP(FILE *fp, struct MARKER *marker, int *line) {
+  int currentChar = 0;
+  for (int i = 2; i < (marker->length); i++) {
+    currentChar = getc(fp);
+    log_verbose(++(*line), currentChar);
+    // I know this could be a list but i want the data to be more explicit
+    // APP length should always be 16
+    switch (i) {
+      case 7: marker->majorVerion = currentChar; break;
+      case 8: marker->minorVersion = currentChar; break;
+      case 9: marker->units = currentChar; break;
+      case 10: marker->densityX = currentChar << 8; break;
+      case 11: marker->densityX |= currentChar; break;
+      case 12: marker->densityY = currentChar << 8; break;
+      case 13: marker->densityY |= currentChar; break;
+      case 14: marker->thumbnailX = currentChar; break;
+      case 15: marker->thumbnailY = currentChar; break;
+      default: marker->identifier[i - 2] = currentChar;
+    }
+  }
+}
+
+void decode_unpackDQT(FILE *fp, struct MARKER *marker, int *line) {
+  int currentChar = 0;
+  currentChar = getc(fp);
+  log_verbose(++(*line), currentChar);
+  marker->destination = currentChar;
+
+  // FIXME: Make sure DQT is always 8x8
+  // From Page 119 this can be 8 or 16 bits
+  // For now this is fine
+  for (int i = 0; i < 8; i++) {
+    for (int j = 0; j < 8; j++) {
+      currentChar = getc(fp);
+      log_verbose(++(*line), currentChar);
+      marker->table[i][j] = currentChar;
+    }
+  }
+}
+
+void decode_unpackSOF(FILE *fp, struct MARKER *marker, int *line) {
+  int currentChar = 0;
+
+  // This first part should always be a length of 8
+  for (int i = 2; i < (marker->length); i++) {
+    currentChar = getc(fp);
+    log_verbose(++(*line), currentChar);
+    switch (i) {
+      case 2: marker->precision = currentChar << 8; break;
+      case 3: marker->precision |= currentChar; break;
+      case 4: marker->lines = currentChar << 8; break;
+      case 5: marker->lines |= currentChar; break;
+      case 6: marker->samples = currentChar; break;
+      case 7: {
+        marker->components = currentChar;
+        log_status(1, "oops");
+        marker->factorTable = malloc(sizeof(int) * marker->components * 3);
+        break;
+      }
+      default: {
+        marker->factorTable[i - 8] = currentChar;
+      }
+
+    }
+  }
+}
+
+void decode_unpackDHT(FILE *fp, struct MARKER *marker, int *line) {
+  int currentChar = 0;
+  for (int i = 2; i < (marker->length); i++) {
+    currentChar = getc(fp);
+    log_verbose(++(*line), currentChar);
+  }
+}
+
+void decode_unpackSOS(FILE *fp, struct MARKER *marker, int *line) {
+  int currentChar = 0;
+  for (int i = 2; i < (marker->length); i++) {
+    currentChar = getc(fp);
+    log_verbose(++(*line), currentChar);
   }
 }

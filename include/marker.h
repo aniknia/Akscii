@@ -69,6 +69,13 @@ struct MARKER {
   int destination;
   int table[8][8];
 
+  // SOF
+  int precision;
+  int lines;
+  int samples;
+  int components;
+  int *factorTable;
+
 
 };
 
