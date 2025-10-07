@@ -18,15 +18,17 @@ void log_init(char *image, int fileoutFlag, int verboseFlag) {
 
     size_t nameLength = extentionPosition - image;
     strncpy(imageName, image, nameLength);
+    imageName[nameLength] = '\0';
 
     snprintf(logFile, sizeof(logFile), "logs/%s %s.log", get_time(), imageName);
 
     FILE *fp;
 
+    char msg[1024];
+
     fp = fopen(logFile, "wx");
     if (fp == NULL) {
-      char msg[512];
-      snprintf(msg, sizeof(msg), "%s already exists, would you like to overwrite it? (y/n) ", image);
+      snprintf(msg, sizeof(msg), "%s already exists, would you like to overwrite it? (y/n) ", logFile);
       log_status(2, msg);
       char input = getchar();
       getchar();
@@ -40,7 +42,6 @@ void log_init(char *image, int fileoutFlag, int verboseFlag) {
     fileout++;
     fclose(fp);
 
-    char msg[1024];
     snprintf(msg, sizeof(msg), "Starting log for %s", image);
     log_status(0, msg);
 
