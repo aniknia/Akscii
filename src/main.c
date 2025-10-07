@@ -6,24 +6,12 @@
 #include "decode.h"
 #include "log.h"
 
-
-int isnum(char str[]) {
-  for (int i = 0; str[i] != '\0'; i++) {
-    if (isdigit(str[i])) {
-      return 1;
-    }
-  }
-  return 0;
-}
-
 //change to add concise, verbose, and message option
 int setParams(int argc, char *argv[], int depth, char *image, int *fileoutptr, int *verboseptr) {
   if (argc == depth) {
     return 0;
 	} else {
-    if (isnum(argv[depth])) {
-      // Nothing yet
-    } else if (strcmp(argv[depth], "-o") == 0) {
+    if (strcmp(argv[depth], "-o") == 0) {
       // Checks for fileout flag
       *fileoutptr = 1;
       log_status(0, "Set fileout to true");
