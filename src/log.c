@@ -81,22 +81,67 @@ void log_summary(struct MARKER marker){
   char markerName[4];
 
   // TODO: log the marker plus info like length, version, units, etc
+  // FIXME: remove redundant code if possible
 
   switch (marker.code) {
-        case SOI: snprintf(markerName, sizeof(markerName), "SOI"); break;
-        case EOI: snprintf(markerName, sizeof(markerName), "EOI"); break;
-        case APP: snprintf(markerName, sizeof(markerName), "APP"); break;
-        case APP1: snprintf(markerName, sizeof(markerName), "EXF"); break;
-        case DQT: snprintf(markerName, sizeof(markerName), "DQT"); break;
-        case SOF: snprintf(markerName, sizeof(markerName), "SOF"); break;
-        case DHT: snprintf(markerName, sizeof(markerName), "DHT"); break;
-        case DRI: snprintf(markerName, sizeof(markerName), "DRI"); break;
-        case SOS: snprintf(markerName, sizeof(markerName), "SOS"); break;
-        case COM: snprintf(markerName, sizeof(markerName), "COM"); break;
-        default: snprintf(markerName, sizeof(markerName), "UNK"); break;
+        case SOI: {
+          snprintf(markerName, sizeof(markerName), "SOI");
+          snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\n", markerName, marker.length);
+          break;
+        }
+        case EOI: {
+          snprintf(markerName, sizeof(markerName), "EOI");
+          snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\n", markerName, marker.length);
+          break;
+        }
+        case APP: {
+          snprintf(markerName, sizeof(markerName), "APP");
+          snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nIdentifier: %s\nVersion: %d.%d\nUnits: %d\nDensity: (%d, %d)\nThumbnail: (%d, %d)\n", markerName, marker.length, marker.identifier, marker.majorVerion, marker.minorVersion, marker.units, marker.densityX, marker.densityY, marker.thumbnailX, marker.thumbnailY);
+          break;
+        }
+        case APP1: {
+          snprintf(markerName, sizeof(markerName), "EXF");
+          snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\n", markerName, marker.length);
+          break;
+        }
+        case DQT: {
+          snprintf(markerName, sizeof(markerName), "DQT");
+          int tableLengthX = sizeof(marker.table) / sizeof(marker.table[0]);
+          int tableLengthY = sizeof(marker.table[0]) / sizeof(marker.table[0][0]);
+          snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nTable: (%d, %d)\n", markerName, marker.length, tableLengthX, tableLengthY);
+          break;
+        }
+        case SOF: {
+          snprintf(markerName, sizeof(markerName), "SOF");
+          snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\n", markerName, marker.length);
+          break;
+        }
+        case DHT: {
+          snprintf(markerName, sizeof(markerName), "DHT");
+          snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\n", markerName, marker.length);
+          break;
+        }
+        case DRI: {
+          snprintf(markerName, sizeof(markerName), "DRI");
+          snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\n", markerName, marker.length);
+          break;
+        }
+        case SOS: {
+          snprintf(markerName, sizeof(markerName), "SOS");
+          snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\n", markerName, marker.length);
+          break;
+        }
+        case COM: {
+          snprintf(markerName, sizeof(markerName), "COM");
+          snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\n", markerName, marker.length);
+          break;
+        }
+        default: {
+          snprintf(markerName, sizeof(markerName), "UNK");
+          snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\n", markerName, marker.length);
+          break;
+        }
   }
-
-  snprintf(msg, sizeof(msg), "Marker: %s \t Length: %d", markerName, marker.length);
 
   log_msg(msg);
 
