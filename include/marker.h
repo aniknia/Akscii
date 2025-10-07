@@ -57,13 +57,18 @@ struct MARKER {
 
   // APP
   char identifier[5];
-  int versionMajor;
-  int versionMinor;
+  int majorVerion;
+  int minorVersion;
   int units;
   int densityX;
   int densityY;
   int thumbnailX;
   int thumbnailY;
+
+  // DQT
+  int destination;
+  int table[8][8];
+
 
 };
 
