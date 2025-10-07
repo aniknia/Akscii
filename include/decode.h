@@ -10,5 +10,6 @@
 
 int decode_JPEG(char image[256]);
 int decode_unpackJPEG(FILE *fp, struct MARKER *marker);
+void decode_unpackMarker(FILE *fp, struct MARKER *marker, int *line);
 
 #endif
