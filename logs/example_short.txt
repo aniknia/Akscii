@@ -1,20 +1,62 @@
-Line 1	SOI
-Line 3	APP
-Line 5	Length 16
-Line 21	DQT
-Line 23	Length 67
-Line 90	DQT
-Line 92	Length 67
-Line 159	SOF
-Line 161	Length 17
-Line 178	DHT
-Line 180	Length 31
-Line 211	DHT
-Line 213	Length 181
-Line 394	DHT
-Line 396	Length 31
-Line 427	DHT
-Line 429	Length 181
-Line 610	SOS
-Line 612	Length 12
-Line 622	Image Data Starts
+[31m2025-10-08 22h12m44s] Success: Starting log for example.jpg
+[31m2025-10-08 22h12m44s] Success: File logging activated
+[31m2025-10-08 22h12m44s] Success: img/example.jpg opened
+Marker: SOI
+Length: 0
+
+Marker: APP
+Length: 16
+Identifier: JFIF
+Version: 1.0
+Units: 0
+Density: (256, 256)
+Thumbnail: (0, 0)
+
+Marker: DQT
+Length: 67
+Table: (8, 8)
+
+Marker: DQT
+Length: 67
+Table: (8, 8)
+
+Marker: SOF
+Length: 17
+Precision: 8
+Lines: 960
+Samples/Line: 960
+Components: 3
+
+Marker: DHT
+Length: 31
+Class: 0
+Destination: 0
+
+Marker: DHT
+Length: 181
+Class: 1
+Destination: 0
+
+Marker: DHT
+Length: 31
+Class: 0
+Destination: 1
+
+Marker: DHT
+Length: 181
+Class: 1
+Destination: 1
+
+Marker: SOS
+Length: 12
+Components: 3
+Spectral Select Start: 0
+Spectral Select End: 63
+Successive Approx High: 0
+Successive Approx Low: 0
+
+Marker: DATA
+Length: 23069
+
+Marker: EOI
+Length: 0
