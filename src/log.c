@@ -3,6 +3,13 @@
 // TODO: Ideally these logs should capture the entire lifecycle of the program including the bootup
 // parameter setting and logging activation
 
+// TODO: Add some more logging options e.g.
+// Summary: Marker: SOI
+//          Length: 0
+// Verbose: Line: 0        Decimal: 255      Hex: FF       Character: �
+// Verbose Summary: FF DA 00 00 00 00 00 00 00 00
+//                        00 00 00 00 00 00 00 00
+
 void log_init(char *image, int fileoutFlag, int verboseFlag) {
   fileout = fileoutFlag;
   verbose = verboseFlag;
@@ -158,8 +165,14 @@ void log_summary(struct MARKER marker){
 void log_verbose(int lineNumber, int currentChar) {
   char msg[1024];
 
-  if (verbose) {
+  if (verbose == 1) {
     snprintf(msg, sizeof(msg), "Line: %-8d Decimal: %-8d Hex: %-8X Character: %s", lineNumber, currentChar, currentChar, currentChar ? (char[]){ (char) currentChar, '\0'} : "none");
+
+    log_msg(msg);
+  }
+
+  if (verbose == 2) {
+    snprintf(msg, sizeof(msg), "%02X", currentChar);
 
     log_msg(msg);
   }

@@ -6,7 +6,8 @@
 #include "decode.h"
 #include "log.h"
 
-//change to add concise, verbose, and message option
+// TODO: make flags more modular (e.g. -ov2)
+// TODO: add different output modes
 int setParams(int argc, char *argv[], int depth, char *image, int *fileoutptr, int *verboseptr) {
   if (argc == depth) {
     return 0;
