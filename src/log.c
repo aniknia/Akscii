@@ -10,9 +10,13 @@
 // Verbose Summary: FF DA 00 00 00 00 00 00 00 00
 //                        00 00 00 00 00 00 00 00
 
-void log_init(char *image, int fileoutFlag, int verboseFlag) {
-  fileout = fileoutFlag;
-  verbose = verboseFlag;
+// TODO: Make the output more verbose by using vsnprintf
+
+void log_init(char *image, int fileoutFlag, int *flags) {
+  fileout = flags[0];
+  summary = flags[1];
+  hex = flags[2];
+  verbose = flags[3];
 
   if (fileout) {
     // Temporarily stop fileout from activating for terminal logging
@@ -93,22 +97,22 @@ void log_summary(struct MARKER marker){
   switch (marker.code) {
     case SOI: {
       snprintf(markerName, sizeof(markerName), "SOI");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\n", markerName, marker.length);
+      snprintf(msg, sizeof(msg), "\nMarker: %s\nLength: %d", markerName, marker.length);
       break;
     }
     case EOI: {
       snprintf(markerName, sizeof(markerName), "EOI");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\n", markerName, marker.length);
+      snprintf(msg, sizeof(msg), "\nMarker: %s\nLength: %d", markerName, marker.length);
       break;
     }
     case APP: {
       snprintf(markerName, sizeof(markerName), "APP");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nIdentifier: %s\nVersion: %d.%d\nUnits: %d\nDensity: (%d, %d)\nThumbnail: (%d, %d)\n", markerName, marker.length, marker.identifier, marker.majorVerion, marker.minorVersion, marker.units, marker.densityX, marker.densityY, marker.thumbnailX, marker.thumbnailY);
+      snprintf(msg, sizeof(msg), "\nMarker: %s\nLength: %d\nIdentifier: %s\nVersion: %d.%d\nUnits: %d\nDensity: (%d, %d)\nThumbnail: (%d, %d)", markerName, marker.length, marker.identifier, marker.majorVerion, marker.minorVersion, marker.units, marker.densityX, marker.densityY, marker.thumbnailX, marker.thumbnailY);
       break;
     }
     case APP1: {
       snprintf(markerName, sizeof(markerName), "EXF");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\n", markerName, marker.length);
+      snprintf(msg, sizeof(msg), "\nMarker: %s\nLength: %d", markerName, marker.length);
       break;
     }
     case DQT: {
@@ -116,48 +120,68 @@ void log_summary(struct MARKER marker){
       snprintf(markerName, sizeof(markerName), "DQT");
       int tableLengthX = sizeof(marker.table) / sizeof(marker.table[0]);
       int tableLengthY = sizeof(marker.table[0]) / sizeof(marker.table[0][0]);
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nTable: (%d, %d)\n", markerName, marker.length, tableLengthX, tableLengthY);
+      snprintf(msg, sizeof(msg), "\nMarker: %s\nLength: %d\nTable: (%d, %d)", markerName, marker.length, tableLengthX, tableLengthY);
       break;
     }
     case SOF: {
       // TODO: Add factor tables
       snprintf(markerName, sizeof(markerName), "SOF");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nPrecision: %d\nLines: %d\nSamples/Line: %d\nComponents: %d\n", markerName, marker.length, marker.precision, marker.lines, marker.samples, marker.components);
+      snprintf(msg, sizeof(msg), "\nMarker: %s\nLength: %d\nPrecision: %d\nLines: %d\nSamples/Line: %d\nComponents: %d", markerName, marker.length, marker.precision, marker.lines, marker.samples, marker.components);
       break;
     }
     case DHT: {
       snprintf(markerName, sizeof(markerName), "DHT");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nClass: %d\nDestination: %d\n", markerName, marker.length, marker.class, marker.destination);
+      snprintf(msg, sizeof(msg), "\nMarker: %s\nLength: %d\nClass: %d\nDestination: %d", markerName, marker.length, marker.class, marker.destination);
       break;
     }
     case DRI: {
       snprintf(markerName, sizeof(markerName), "DRI");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\n", markerName, marker.length);
+      snprintf(msg, sizeof(msg), "\nMarker: %s\nLength: %d", markerName, marker.length);
       break;
     }
     case SOS: {
       snprintf(markerName, sizeof(markerName), "SOS");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nComponents: %d\nSpectral Select Start: %d\nSpectral Select End: %d\nSuccessive Approx High: %d\nSuccessive Approx Low: %d\n", markerName, marker.length, marker.components, marker.spectralSelectStart, marker.spectralSelectEnd, marker.successiveHigh, marker.successiveLow);
+      snprintf(msg, sizeof(msg), "\nMarker: %s\nLength: %d\nComponents: %d\nSpectral Select Start: %d\nSpectral Select End: %d\nSuccessive Approx High: %d\nSuccessive Approx Low: %d", markerName, marker.length, marker.components, marker.spectralSelectStart, marker.spectralSelectEnd, marker.successiveHigh, marker.successiveLow);
       break;
     }
     case DATA: {
       snprintf(markerName, sizeof(markerName), "DATA");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\n", markerName, marker.length);
+      snprintf(msg, sizeof(msg), "\nMarker: %s\nLength: %d", markerName, marker.length);
       break;
     }
     case COM: {
       snprintf(markerName, sizeof(markerName), "COM");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\n", markerName, marker.length);
+      snprintf(msg, sizeof(msg), "\nMarker: %s\nLength: %d", markerName, marker.length);
       break;
     }
     default: {
       snprintf(markerName, sizeof(markerName), "UNK");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\n", markerName, marker.length);
+      snprintf(msg, sizeof(msg), "\nMarker: %s\nLength: %d", markerName, marker.length);
       break;
     }
   }
 
   log_msg(msg);
+
+  // TODO: Change this to a seperate log option
+  char msg1[1001];
+  char *currentPosition = msg1;
+  char *endPosition = msg1 + sizeof(msg1);
+
+  for (int i = 0; i < marker.length + 2; i++) {
+
+    if (i % 11 == 0) {
+      int written = snprintf(currentPosition, endPosition - currentPosition, "\n");
+      if (written < 0 || written >= endPosition - currentPosition) break;
+      currentPosition += written;
+    }
+
+    int written = snprintf(currentPosition, endPosition - currentPosition, "%02X ", marker.data[i]);
+    if (written < 0 || written >= endPosition - currentPosition) break;
+    currentPosition += written;
+  }
+
+  log_msg(msg1);
 
   return;
 }

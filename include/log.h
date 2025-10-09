@@ -24,12 +24,15 @@ static int verbose = 0;
 // 0: quiet
 // 1: verbose
 
+static int summary = 0;
+static int hex = 0;
+
 static char logFile[256 + 64] = {0};
 // image name is 256, time stamp is 64
 
 static int line = 0;
 
-void log_init(char *image, int fileoutFlag, int verboseFlag);
+void log_init(char *image, int fileoutFlag, int *flags);
 void log_status(int messageType, char *info); // Log a status
 void log_summary(struct MARKER marker); // Log a summary of the marker (for now marker and length)
 void log_verbose(int currentChar); // Log the line and character
