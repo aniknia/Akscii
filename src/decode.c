@@ -27,18 +27,7 @@ int decode_JPEG(char image[256]) {
       // Get next identifier
       currentChar = getc(imgPtr);
       log_verbose(currentChar);
-
-      // Identifying markerStatus
       marker[currentMarker].code = currentChar;
-      if (marker[currentMarker].code == SOI) {
-        log_summary(marker[currentMarker]);
-        currentMarker++;
-        continue;
-      }
-      if (marker[currentMarker].code == EOI) {
-        log_summary(marker[currentMarker]);
-        break;
-      }
       
       // Unpack Marker
       decode_unpackMarker(&marker[currentMarker]);
@@ -80,6 +69,13 @@ int decode_JPEG(char image[256]) {
 void decode_unpackMarker(struct MARKER *marker) {
   int currentChar = 0;
 
+  if ((marker->code == SOI) || (marker->code == EOI)) {
+    marker->data = malloc(sizeof(int) * (marker->length + 2));
+    marker->data[0] = FF;
+    marker->data[1] = marker->code;
+    return;
+  }
+
   int lenHigh;
   int lenLow;
 
@@ -114,27 +110,30 @@ void decode_unpackMarker(struct MARKER *marker) {
       decode_unpackUKN(marker);
     }
   }
-
 }
 
 // TODO: Try to consolidate these calls, maybe look at dispatch tables?
 void decode_unpackUKN(struct MARKER *marker) {
   int currentChar = 0;
   int length = marker->length - 2;
+  int currentPosition;
+
   for (int i = 0; i < length; i++) {
     currentChar = getc(imgPtr);
     log_verbose(currentChar);
-    marker->data[i + 4] = currentChar;
+    marker->data[currentPosition] = currentChar;
   }
 }
 
 void decode_unpackAPP(struct MARKER *marker) {
   int currentChar = 0;
   int length = marker->length - 2;
+  int currentPosition = 4;
+
   for (int i = 0; i < length; i++) {
     currentChar = getc(imgPtr);
     log_verbose(currentChar);
-    marker->data[i + 4] = currentChar;
+    marker->data[currentPosition++] = currentChar;
     // I know this could be a list but i want the data to be more explicit
     // APP length should always be 16
     switch (i) {
@@ -155,11 +154,12 @@ void decode_unpackAPP(struct MARKER *marker) {
 void decode_unpackDQT(struct MARKER *marker) {
   int currentChar = 0;
   int length = marker->length - 2;
+  int currentPosition = 4;
 
   currentChar = getc(imgPtr);
   log_verbose(currentChar);
   marker->destination = currentChar;
-  marker->data[4] = currentChar;
+  marker->data[currentPosition++] = currentChar;
   length--;
 
   // FIXME: Make sure DQT is always 8x8
@@ -169,7 +169,9 @@ void decode_unpackDQT(struct MARKER *marker) {
     for (int j = 0; j < 8; j++) {
       currentChar = getc(imgPtr);
       log_verbose(currentChar);
+      marker->data[currentPosition++] = currentChar;
       marker->table[i][j] = currentChar;
+      marker->data[i + 5] = currentChar;
       length--;
     }
   }
@@ -180,11 +182,14 @@ void decode_unpackDQT(struct MARKER *marker) {
 void decode_unpackSOF(struct MARKER *marker) {
   int currentChar = 0;
   int length = marker->length - 2;
+  int currentPosition = 4;
 
   // This first part should always be a length of 8
   for (int i = 0; i < length; i++) {
     currentChar = getc(imgPtr);
     log_verbose(currentChar);
+    marker->data[currentPosition++] = currentChar;
+
     switch (i) {
       case 0: marker->precision = currentChar; break;
       case 1: marker->lines = currentChar << 8; break;
@@ -212,16 +217,23 @@ void decode_unpackSOF(struct MARKER *marker) {
 void decode_unpackDHT(struct MARKER *marker) {
   int currentChar = 0;
   int length = marker->length - 2;
+  int currentPosition = 4;
 
   currentChar = getc(imgPtr);
   log_verbose(currentChar);
+  marker->data[currentPosition++] = currentChar;
   marker->class = currentChar >> 4; // (currentChar >> 4) & 0x0F 
+  if (marker->class > 3) {
+    log_status(1, "Error in DHT class");
+    exit(1);
+  }
   marker->destination = currentChar & 0x0F;
   length--;
 
   for (int i = 0; i < (sizeof(marker->bytes)/sizeof(marker->bytes[0])); i++) {
     currentChar = getc(imgPtr);
     log_verbose(currentChar);
+    marker->data[currentPosition++] = currentChar;
     marker->bytes[i] = malloc(sizeof(int) * currentChar);
     marker->numOfBytes[i] = currentChar;
     length--;
@@ -233,6 +245,7 @@ void decode_unpackDHT(struct MARKER *marker) {
     for (int j = 0; j < marker->numOfBytes[i]; j++) {
       currentChar = getc(imgPtr);
       log_verbose(currentChar);
+      marker->data[currentPosition++] = currentChar;
       marker->bytes[i][j] = currentChar;
       length--;
     }
@@ -244,9 +257,11 @@ void decode_unpackDHT(struct MARKER *marker) {
 void decode_unpackSOS(struct MARKER *marker) {
   int currentChar = 0;
   int length = marker->length - 2;
+  int currentPosition = 4;
 
   currentChar = getc(imgPtr);
   log_verbose(currentChar);
+  marker->data[currentPosition++] = currentChar;
   marker->components = currentChar;
   marker->componentSelector = malloc(sizeof(int) * marker->components);
   marker->dcTableSelector = malloc(sizeof(int) * marker->components);
@@ -256,10 +271,12 @@ void decode_unpackSOS(struct MARKER *marker) {
   for (int i = 0; i < marker->components; i++) {
     currentChar = getc(imgPtr);
     log_verbose(currentChar);
+    marker->data[currentPosition++] = currentChar;
     marker->componentSelector[i] = currentChar;
 
     currentChar = getc(imgPtr);
     log_verbose(currentChar);
+    marker->data[currentPosition++] = currentChar;
     marker->dcTableSelector[i] = currentChar >> 4;
     marker->acTableSelector[i] = currentChar & 0x0F;
 
@@ -268,16 +285,19 @@ void decode_unpackSOS(struct MARKER *marker) {
 
   currentChar = getc(imgPtr);
   log_verbose(currentChar);
+  marker->data[currentPosition++] = currentChar;
   marker->spectralSelectStart = currentChar;
   length--;
 
   currentChar = getc(imgPtr);
   log_verbose(currentChar);
+  marker->data[currentPosition++] = currentChar;
   marker->spectralSelectEnd = currentChar;
   length--;
 
   currentChar = getc(imgPtr);
   log_verbose(currentChar);
+  marker->data[currentPosition++] = currentChar;
   marker->successiveHigh = currentChar >> 4;
   marker->successiveLow = currentChar & 0x0F;
   length--;
