@@ -69,12 +69,7 @@ int decode_JPEG(char image[256]) {
 void decode_unpackMarker(struct MARKER *marker) {
   int currentChar = 0;
 
-  if ((marker->code == SOI) || (marker->code == EOI)) {
-    marker->data = malloc(sizeof(int) * (marker->length + 2));
-    marker->data[0] = FF;
-    marker->data[1] = marker->code;
-    return;
-  }
+  if ((marker->code == SOI) || (marker->code == EOI)) return;
 
   int lenHigh;
   int lenLow;
@@ -92,11 +87,9 @@ void decode_unpackMarker(struct MARKER *marker) {
     }
   }
 
-  marker->data = malloc(sizeof(int) * (marker->length + 2));
-  marker->data[0] = FF;
-  marker->data[1] = marker->code;
-  marker->data[2] = lenHigh;
-  marker->data[3] = lenLow;
+  marker->data = malloc(sizeof(int) * marker->length);
+  marker->data[0] = lenHigh;
+  marker->data[1] = lenLow;
 
   // Grab Marker Data
   switch (marker->code) {
@@ -116,19 +109,19 @@ void decode_unpackMarker(struct MARKER *marker) {
 void decode_unpackUKN(struct MARKER *marker) {
   int currentChar = 0;
   int length = marker->length - 2;
-  int currentPosition;
+  int currentPosition = 2;
 
   for (int i = 0; i < length; i++) {
     currentChar = getc(imgPtr);
     log_verbose(currentChar);
-    marker->data[currentPosition] = currentChar;
+    marker->data[currentPosition++] = currentChar;
   }
 }
 
 void decode_unpackAPP(struct MARKER *marker) {
   int currentChar = 0;
   int length = marker->length - 2;
-  int currentPosition = 4;
+  int currentPosition = 2;
 
   for (int i = 0; i < length; i++) {
     currentChar = getc(imgPtr);
@@ -154,7 +147,7 @@ void decode_unpackAPP(struct MARKER *marker) {
 void decode_unpackDQT(struct MARKER *marker) {
   int currentChar = 0;
   int length = marker->length - 2;
-  int currentPosition = 4;
+  int currentPosition = 2;
 
   currentChar = getc(imgPtr);
   log_verbose(currentChar);
@@ -182,7 +175,7 @@ void decode_unpackDQT(struct MARKER *marker) {
 void decode_unpackSOF(struct MARKER *marker) {
   int currentChar = 0;
   int length = marker->length - 2;
-  int currentPosition = 4;
+  int currentPosition = 2;
 
   // This first part should always be a length of 8
   for (int i = 0; i < length; i++) {
@@ -217,7 +210,7 @@ void decode_unpackSOF(struct MARKER *marker) {
 void decode_unpackDHT(struct MARKER *marker) {
   int currentChar = 0;
   int length = marker->length - 2;
-  int currentPosition = 4;
+  int currentPosition = 2;
 
   currentChar = getc(imgPtr);
   log_verbose(currentChar);
@@ -257,7 +250,7 @@ void decode_unpackDHT(struct MARKER *marker) {
 void decode_unpackSOS(struct MARKER *marker) {
   int currentChar = 0;
   int length = marker->length - 2;
-  int currentPosition = 4;
+  int currentPosition = 2;
 
   currentChar = getc(imgPtr);
   log_verbose(currentChar);

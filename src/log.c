@@ -177,10 +177,12 @@ void log_hex(struct MARKER marker) {
   char *currentPosition = msg;
   char *endPosition = msg + sizeof(msg);
 
-  for (int i = 0; i < marker.length + 2; i++) {
+  currentPosition += snprintf(currentPosition, endPosition - currentPosition, "\n%02X %02X ", FF, marker.code);
 
-    if (i % 11 == 0) {
-      int written = snprintf(currentPosition, endPosition - currentPosition, "\n");
+  for (int i = 0; i < marker.length; i++) {
+
+    if (i % 11 == 0 && i != 0) {
+      int written = snprintf(currentPosition, endPosition - currentPosition, "\n      ");
       if (written < 0 || written >= endPosition - currentPosition) break;
       currentPosition += written;
     }
