@@ -162,11 +162,13 @@ void log_summary(struct MARKER marker){
   return;
 }
 
-void log_verbose(int lineNumber, int currentChar) {
+void log_verbose(int currentChar) {
   char msg[1024];
 
+  line++;
+
   if (verbose == 1) {
-    snprintf(msg, sizeof(msg), "Line: %-8d Decimal: %-8d Hex: %-8X Character: %s", lineNumber, currentChar, currentChar, currentChar ? (char[]){ (char) currentChar, '\0'} : "none");
+    snprintf(msg, sizeof(msg), "Line: %-8d Decimal: %-8d Hex: %-8X Character: %s", line, currentChar, currentChar, currentChar ? (char[]){ (char) currentChar, '\0'} : "none");
 
     log_msg(msg);
   }

@@ -8,13 +8,15 @@
 #include "log.h"
 #include "marker.h"
 
+static FILE *aksciiImageFilePointer = NULL;
+
 int decode_JPEG(char image[256]);
-void decode_unpackMarker(FILE *fp, struct MARKER *marker, int *line);
-void decode_unpackUKN(FILE *fp, struct MARKER *marker, int *line);
-void decode_unpackAPP(FILE *fp, struct MARKER *marker, int *line);
-void decode_unpackDQT(FILE *fp, struct MARKER *marker, int *line);
-void decode_unpackSOF(FILE *fp, struct MARKER *marker, int *line);
-void decode_unpackDHT(FILE *fp, struct MARKER *marker, int *line);
-void decode_unpackSOS(FILE *fp, struct MARKER *marker, int *line);
+void decode_unpackMarker(struct MARKER *marker);
+void decode_unpackUKN(struct MARKER *marker);
+void decode_unpackAPP(struct MARKER *marker);
+void decode_unpackDQT(struct MARKER *marker);
+void decode_unpackSOF(struct MARKER *marker);
+void decode_unpackDHT(struct MARKER *marker);
+void decode_unpackSOS(struct MARKER *marker);
 
 #endif

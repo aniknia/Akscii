@@ -22,6 +22,7 @@ int setParams(int argc, char *argv[], int depth, char *image, int *fileoutptr, i
       log_status(0, "Set verbose to true");
     } else {
       // Assume an image file
+      // FIXME: Add error handling, currently seg faults if no .
       char *extension = strchr(argv[depth], '.');
       if ((strcasecmp(extension, ".jpg") != 0) && (strcasecmp(extension, ".jpeg") != 0)) {
         char msg[512];

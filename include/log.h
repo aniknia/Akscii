@@ -27,10 +27,12 @@ static int verbose = 0;
 static char logFile[256 + 64] = {0};
 // image name is 256, time stamp is 64
 
+static int line = 0;
+
 void log_init(char *image, int fileoutFlag, int verboseFlag);
 void log_status(int messageType, char *info); // Log a status
 void log_summary(struct MARKER marker); // Log a summary of the marker (for now marker and length)
-void log_verbose(int lineNumber, int currentChar); // Log the line and character
+void log_verbose(int currentChar); // Log the line and character
 void log_msg(char* message); // Output message message
 
 char* get_time();
