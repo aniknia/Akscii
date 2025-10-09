@@ -76,11 +76,11 @@ void log_status(int messageType, char *info) {
   return;
 }
 
+// TODO: Add summary mode that prints out header and data in hex
 void log_summary(struct MARKER marker){
   char msg[1024];
   char markerName[6];
-
-  // TODO: log the marker plus info like length, version, units, etc
+  
   // FIXME: remove redundant code if possible
 
   switch (marker.code) {
