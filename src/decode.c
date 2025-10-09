@@ -2,7 +2,7 @@
 
 int decode_JPEG(char image[256]) {
 
-  if ((aksciiImageFilePointer = fopen(image, "rb")) == NULL) {
+  if ((imgPtr = fopen(image, "rb")) == NULL) {
 		log_status(1, "Image could not be opened");
     return 1;
 	} else {
@@ -20,12 +20,12 @@ int decode_JPEG(char image[256]) {
   int currentMarker = 0;
 
   // FIXME: see if i can remove the excess nesting
-  while ((currentChar = getc(aksciiImageFilePointer)) != EOF) {
+  while ((currentChar = getc(imgPtr)) != EOF) {
     log_verbose(currentChar);
 
     if ((currentChar == FF) && (!scanStatus)) {
       // Get next identifier
-      currentChar = getc(aksciiImageFilePointer);
+      currentChar = getc(imgPtr);
       log_verbose(currentChar);
 
       // Identifying markerStatus
@@ -53,14 +53,14 @@ int decode_JPEG(char image[256]) {
       }
     } else {
       if (currentChar == FF) {
-        int nextChar = getc(aksciiImageFilePointer);
+        int nextChar = getc(imgPtr);
         log_verbose(nextChar);
         if (nextChar == 0x00) {
           marker[currentMarker].data[marker[currentMarker].length++] = FF;
           continue;
         }
-        ungetc(nextChar, aksciiImageFilePointer);
-        ungetc(currentChar, aksciiImageFilePointer);
+        ungetc(nextChar, imgPtr);
+        ungetc(currentChar, imgPtr);
         scanStatus = 0;
         log_summary(marker[currentMarker]);
         currentMarker++;
@@ -72,7 +72,7 @@ int decode_JPEG(char image[256]) {
     line++;
   }
   
-	fclose(aksciiImageFilePointer);
+	fclose(imgPtr);
 
 	return 0;
 }
@@ -85,7 +85,7 @@ void decode_unpackMarker(struct MARKER *marker) {
 
   // Grab Marker length
   for (int i = 0; i < 2; i++) {
-    currentChar = getc(aksciiImageFilePointer);
+    currentChar = getc(imgPtr);
     log_verbose(currentChar);
     if (i == 0) {
       lenHigh = currentChar;
@@ -122,7 +122,7 @@ void decode_unpackUKN(struct MARKER *marker) {
   int currentChar = 0;
   int length = marker->length - 2;
   for (int i = 0; i < length; i++) {
-    currentChar = getc(aksciiImageFilePointer);
+    currentChar = getc(imgPtr);
     log_verbose(currentChar);
     marker->data[i + 4] = currentChar;
   }
@@ -132,7 +132,7 @@ void decode_unpackAPP(struct MARKER *marker) {
   int currentChar = 0;
   int length = marker->length - 2;
   for (int i = 0; i < length; i++) {
-    currentChar = getc(aksciiImageFilePointer);
+    currentChar = getc(imgPtr);
     log_verbose(currentChar);
     marker->data[i + 4] = currentChar;
     // I know this could be a list but i want the data to be more explicit
@@ -156,7 +156,7 @@ void decode_unpackDQT(struct MARKER *marker) {
   int currentChar = 0;
   int length = marker->length - 2;
 
-  currentChar = getc(aksciiImageFilePointer);
+  currentChar = getc(imgPtr);
   log_verbose(currentChar);
   marker->destination = currentChar;
   marker->data[4] = currentChar;
@@ -167,7 +167,7 @@ void decode_unpackDQT(struct MARKER *marker) {
   // For now this is fine
   for (int i = 0; i < 8; i++) {
     for (int j = 0; j < 8; j++) {
-      currentChar = getc(aksciiImageFilePointer);
+      currentChar = getc(imgPtr);
       log_verbose(currentChar);
       marker->table[i][j] = currentChar;
       length--;
@@ -183,7 +183,7 @@ void decode_unpackSOF(struct MARKER *marker) {
 
   // This first part should always be a length of 8
   for (int i = 0; i < length; i++) {
-    currentChar = getc(aksciiImageFilePointer);
+    currentChar = getc(imgPtr);
     log_verbose(currentChar);
     switch (i) {
       case 0: marker->precision = currentChar; break;
@@ -213,14 +213,14 @@ void decode_unpackDHT(struct MARKER *marker) {
   int currentChar = 0;
   int length = marker->length - 2;
 
-  currentChar = getc(aksciiImageFilePointer);
+  currentChar = getc(imgPtr);
   log_verbose(currentChar);
   marker->class = currentChar >> 4; // (currentChar >> 4) & 0x0F 
   marker->destination = currentChar & 0x0F;
   length--;
 
   for (int i = 0; i < (sizeof(marker->bytes)/sizeof(marker->bytes[0])); i++) {
-    currentChar = getc(aksciiImageFilePointer);
+    currentChar = getc(imgPtr);
     log_verbose(currentChar);
     marker->bytes[i] = malloc(sizeof(int) * currentChar);
     marker->numOfBytes[i] = currentChar;
@@ -231,7 +231,7 @@ void decode_unpackDHT(struct MARKER *marker) {
     if(marker->numOfBytes[i] == 0) continue;
 
     for (int j = 0; j < marker->numOfBytes[i]; j++) {
-      currentChar = getc(aksciiImageFilePointer);
+      currentChar = getc(imgPtr);
       log_verbose(currentChar);
       marker->bytes[i][j] = currentChar;
       length--;
@@ -245,7 +245,7 @@ void decode_unpackSOS(struct MARKER *marker) {
   int currentChar = 0;
   int length = marker->length - 2;
 
-  currentChar = getc(aksciiImageFilePointer);
+  currentChar = getc(imgPtr);
   log_verbose(currentChar);
   marker->components = currentChar;
   marker->componentSelector = malloc(sizeof(int) * marker->components);
@@ -254,11 +254,11 @@ void decode_unpackSOS(struct MARKER *marker) {
   length--;
 
   for (int i = 0; i < marker->components; i++) {
-    currentChar = getc(aksciiImageFilePointer);
+    currentChar = getc(imgPtr);
     log_verbose(currentChar);
     marker->componentSelector[i] = currentChar;
 
-    currentChar = getc(aksciiImageFilePointer);
+    currentChar = getc(imgPtr);
     log_verbose(currentChar);
     marker->dcTableSelector[i] = currentChar >> 4;
     marker->acTableSelector[i] = currentChar & 0x0F;
@@ -266,17 +266,17 @@ void decode_unpackSOS(struct MARKER *marker) {
     length -= 2;
   }
 
-  currentChar = getc(aksciiImageFilePointer);
+  currentChar = getc(imgPtr);
   log_verbose(currentChar);
   marker->spectralSelectStart = currentChar;
   length--;
 
-  currentChar = getc(aksciiImageFilePointer);
+  currentChar = getc(imgPtr);
   log_verbose(currentChar);
   marker->spectralSelectEnd = currentChar;
   length--;
 
-  currentChar = getc(aksciiImageFilePointer);
+  currentChar = getc(imgPtr);
   log_verbose(currentChar);
   marker->successiveHigh = currentChar >> 4;
   marker->successiveLow = currentChar & 0x0F;

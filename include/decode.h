@@ -8,7 +8,7 @@
 #include "log.h"
 #include "marker.h"
 
-static FILE *aksciiImageFilePointer = NULL;
+static FILE *imgPtr = NULL;
 
 int decode_JPEG(char image[256]);
 void decode_unpackMarker(struct MARKER *marker);
