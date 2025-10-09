@@ -13,15 +13,12 @@
 #define SOF1 0xC1   //Extended Sequential DCT
 #define SOF2 0xC2   //Progressive DCT
 #define SOF3 0xC3   //Lossless Sequential
-#define SOF4 0xC4   //
 #define SOF5 0xC5   //Differential Sequential DCT
 #define SOF6 0xC6   //Differential Progressive DCT
 #define SOF7 0xC7   //Differential Lossless
-#define SOF8 0xC8   //
 #define SOF9 0xC9   //Extended Sequential DCT
 #define SOF10 0xCA  //Progressive DCT
 #define SOF11 0xCB  //Lossless Sequential
-#define SOF12 0xCC  //
 #define SOF13 0xCD  //Differential Sequential DCT
 #define SOF14 0xCE  //Differential Progressive DCT
 #define SOF15 0xCF  //Differential Lossless
