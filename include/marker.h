@@ -3,6 +3,7 @@
 
 // Marker Codes
 #define FF 255
+#define DATA 0x00   //DATA (This one i made up)
 #define SOI 0xD8    //Start of Image
 #define EOI 0xD9    //End of Image
 #define SOS 0xDA    //Start of Scan
@@ -51,9 +52,9 @@
 
 // FIXME: Fill in all the data types needed for the basic markers
 struct MARKER {
+  // Generic
   int code;
   int length;
-  int *data; // use malloc at runtime (check largest image/frame size)
 
   // APP
   char identifier[5];
@@ -76,6 +77,24 @@ struct MARKER {
   int components;
   int *factorTable;
 
+  // DHT
+  int class;
+  // int destination; Shared with DQT
+  int numOfBytes[16];
+  int *bytes[16];
+
+  // SOS
+  // int components; Shared with SOF
+  int *componentSelector;
+  int *dcTableSelector;
+  int *acTableSelector;
+  int spectralSelectStart;
+  int spectralSelectEnd;
+  int successiveHigh;
+  int successiveLow;
+
+  // DATA
+  int *data; // use malloc at runtime (check largest image/frame size)
 
 };
 

@@ -48,6 +48,7 @@ int decode_JPEG(char image[256]) {
       // Checking for Start of Scan
       if (marker[currentMarker++].code == SOS) {
         scanStatus = 1;
+        marker[currentMarker].code = DATA;
         // FIXME: img data doesnt have a fixed size (using magic number)
         marker[currentMarker].data = malloc(64 * 1024 * 1024);
       }
@@ -63,6 +64,7 @@ int decode_JPEG(char image[256]) {
         ungetc(currentChar, fp);
         line = line - 2;
         scanStatus = 0;
+        log_summary(marker[currentMarker]);
         currentMarker++;
         continue;
       }
@@ -104,7 +106,8 @@ void decode_unpackMarker(FILE *fp, struct MARKER *marker, int *line) {
 // TODO: Try to consolidate these calls, maybe look at dispatch tables?
 void decode_unpackUKN(FILE *fp, struct MARKER *marker, int *line) {
   int currentChar = 0;
-  for (int i = 2; i < (marker->length); i++) {
+  int length = marker->length - 2;
+  for (int i = 0; i < length; i++) {
     currentChar = getc(fp);
     log_verbose(++(*line), currentChar);
   }
@@ -112,31 +115,35 @@ void decode_unpackUKN(FILE *fp, struct MARKER *marker, int *line) {
 
 void decode_unpackAPP(FILE *fp, struct MARKER *marker, int *line) {
   int currentChar = 0;
-  for (int i = 2; i < (marker->length); i++) {
+  int length = marker->length - 2;
+  for (int i = 0; i < length; i++) {
     currentChar = getc(fp);
     log_verbose(++(*line), currentChar);
     // I know this could be a list but i want the data to be more explicit
     // APP length should always be 16
     switch (i) {
-      case 7: marker->majorVerion = currentChar; break;
-      case 8: marker->minorVersion = currentChar; break;
-      case 9: marker->units = currentChar; break;
-      case 10: marker->densityX = currentChar << 8; break;
-      case 11: marker->densityX |= currentChar; break;
-      case 12: marker->densityY = currentChar << 8; break;
-      case 13: marker->densityY |= currentChar; break;
-      case 14: marker->thumbnailX = currentChar; break;
-      case 15: marker->thumbnailY = currentChar; break;
-      default: marker->identifier[i - 2] = currentChar;
+      case 6: marker->majorVerion = currentChar; break;
+      case 7: marker->minorVersion = currentChar; break;
+      case 8: marker->units = currentChar; break;
+      case 9: marker->densityX = currentChar << 8; break;
+      case 10: marker->densityX |= currentChar; break;
+      case 11: marker->densityY = currentChar << 8; break;
+      case 12: marker->densityY |= currentChar; break;
+      case 13: marker->thumbnailX = currentChar; break;
+      case 14: marker->thumbnailY = currentChar; break;
+      default: marker->identifier[i] = currentChar;
     }
   }
 }
 
 void decode_unpackDQT(FILE *fp, struct MARKER *marker, int *line) {
   int currentChar = 0;
+  int length = marker->length - 2;
+
   currentChar = getc(fp);
   log_verbose(++(*line), currentChar);
   marker->destination = currentChar;
+  length--;
 
   // FIXME: Make sure DQT is always 8x8
   // From Page 119 this can be 8 or 16 bits
@@ -146,49 +153,117 @@ void decode_unpackDQT(FILE *fp, struct MARKER *marker, int *line) {
       currentChar = getc(fp);
       log_verbose(++(*line), currentChar);
       marker->table[i][j] = currentChar;
+      length--;
     }
   }
+
+  if (length != 0) log_status(0, "deocode_unpackDQT ran into an error");
 }
 
 void decode_unpackSOF(FILE *fp, struct MARKER *marker, int *line) {
   int currentChar = 0;
+  int length = marker->length - 2;
 
   // This first part should always be a length of 8
-  for (int i = 2; i < (marker->length); i++) {
+  for (int i = 0; i < length; i++) {
     currentChar = getc(fp);
     log_verbose(++(*line), currentChar);
     switch (i) {
-      case 2: marker->precision = currentChar << 8; break;
-      case 3: marker->precision |= currentChar; break;
-      case 4: marker->lines = currentChar << 8; break;
-      case 5: marker->lines |= currentChar; break;
-      case 6: marker->samples = currentChar; break;
-      case 7: {
+      case 0: marker->precision = currentChar; break;
+      case 1: marker->lines = currentChar << 8; break;
+      case 2: marker->lines |= currentChar; break;
+      case 3: marker->samples = currentChar << 8; break;
+      case 4: marker->samples |= currentChar; break;
+      case 5: {
         marker->components = currentChar;
-        log_status(1, "oops");
         marker->factorTable = malloc(sizeof(int) * marker->components * 3);
         break;
       }
       default: {
-        marker->factorTable[i - 8] = currentChar;
+        // FIXME: find a different way to do this
+        // Factor Table ID: 8 bits
+        // Horizontal Scaling: 4 bits
+        // Vertical Scaling: 4 bits
+        // Quant Table Selector: 8 bits
+        // Hori and Vert Scaling share a byte
+        marker->factorTable[i - 6] = currentChar;
       }
-
     }
   }
 }
 
 void decode_unpackDHT(FILE *fp, struct MARKER *marker, int *line) {
   int currentChar = 0;
-  for (int i = 2; i < (marker->length); i++) {
+  int length = marker->length - 2;
+
+  currentChar = getc(fp);
+  log_verbose(++(*line), currentChar);
+  marker->class = currentChar >> 4; // (currentChar >> 4) & 0x0F 
+  marker->destination = currentChar & 0x0F;
+  length--;
+
+  for (int i = 0; i < (sizeof(marker->bytes)/sizeof(marker->bytes[0])); i++) {
     currentChar = getc(fp);
     log_verbose(++(*line), currentChar);
+    marker->bytes[i] = malloc(sizeof(int) * currentChar);
+    marker->numOfBytes[i] = currentChar;
+    length--;
   }
+
+  for (int i = 0; i < (sizeof(marker->bytes)/sizeof(marker->bytes[0])); i++) {
+    if(marker->numOfBytes[i] == 0) continue;
+
+    for (int j = 0; j < marker->numOfBytes[i]; j++) {
+      currentChar = getc(fp);
+      log_verbose(++(*line), currentChar);
+      marker->bytes[i][j] = currentChar;
+      length--;
+    }
+  }
+
+  if (length != 0) log_status(0, "deocode_unpackDHT ran into an error");
 }
 
 void decode_unpackSOS(FILE *fp, struct MARKER *marker, int *line) {
   int currentChar = 0;
-  for (int i = 2; i < (marker->length); i++) {
+  int length = marker->length - 2;
+
+  currentChar = getc(fp);
+  log_verbose(++(*line), currentChar);
+  marker->components = currentChar;
+  marker->componentSelector = malloc(sizeof(int) * marker->components);
+  marker->dcTableSelector = malloc(sizeof(int) * marker->components);
+  marker->acTableSelector = malloc(sizeof(int) * marker->components);
+  length--;
+
+  for (int i = 0; i < marker->components; i++) {
     currentChar = getc(fp);
     log_verbose(++(*line), currentChar);
+    marker->componentSelector[i] = currentChar;
+
+    currentChar = getc(fp);
+    log_verbose(++(*line), currentChar);
+    marker->dcTableSelector[i] = currentChar >> 4;
+    marker->acTableSelector[i] = currentChar & 0x0F;
+
+    length -= 2;
   }
+
+  currentChar = getc(fp);
+  log_verbose(++(*line), currentChar);
+  marker->spectralSelectStart = currentChar;
+  length--;
+
+  currentChar = getc(fp);
+  log_verbose(++(*line), currentChar);
+  marker->spectralSelectEnd = currentChar;
+  length--;
+
+  currentChar = getc(fp);
+  log_verbose(++(*line), currentChar);
+  marker->successiveHigh = currentChar >> 4;
+  marker->successiveLow = currentChar & 0x0F;
+  length--;
+
+  if (length != 0) log_status(0, "deocode_unpackSOS ran into an error");
 }
