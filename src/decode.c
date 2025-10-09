@@ -11,7 +11,7 @@ int decode_JPEG(char image[256]) {
     log_status(0, msg);
   }
 
-  int markerStatus, scanStatus = 0;
+  int scanStatus = 0;
   int currentChar;
   int line, markerPosition, scanPosition = 0;
 
@@ -33,7 +33,6 @@ int decode_JPEG(char image[256]) {
       if (marker[currentMarker].code == SOI) {
         log_summary(marker[currentMarker]);
         currentMarker++;
-        markerStatus = 0;
         continue;
       }
       if (marker[currentMarker].code == EOI) {
