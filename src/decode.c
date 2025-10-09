@@ -31,7 +31,7 @@ int decode_JPEG(char image[256]) {
       
       // Unpack Marker
       decode_unpackMarker(&marker[currentMarker]);
-      log_summary(marker[currentMarker]);
+      log_marker(marker[currentMarker]);
 
       // Checking for Start of Scan
       if (marker[currentMarker++].code == SOS) {
@@ -51,7 +51,7 @@ int decode_JPEG(char image[256]) {
         ungetc(nextChar, imgPtr);
         ungetc(currentChar, imgPtr);
         scanStatus = 0;
-        log_summary(marker[currentMarker]);
+        log_marker(marker[currentMarker]);
         currentMarker++;
         continue;
       }

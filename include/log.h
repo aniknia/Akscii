@@ -34,7 +34,9 @@ static int line = 0;
 
 void log_init(char *image, int fileoutFlag, int *flags);
 void log_status(int messageType, char *info); // Log a status
-void log_summary(struct MARKER marker); // Log a summary of the marker (for now marker and length)
+void log_marker(struct MARKER marker);
+void log_summary(struct MARKER marker); // Log a summary of tha data
+void log_hex(struct MARKER marker); // Log a shortened hex of the data
 void log_verbose(int currentChar); // Log the line and character
 void log_msg(char* message); // Output message message
 
