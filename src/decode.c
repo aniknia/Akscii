@@ -13,7 +13,7 @@ int decode_JPEG(char image[256]) {
 
   int scanStatus = 0;
   int currentChar;
-  int line, markerPosition, scanPosition = 0;
+  int markerPosition, scanPosition = 0;
 
   // Array of markers
   struct MARKER marker[1024]; // FIXME: see if i can remove the magic number
@@ -58,7 +58,6 @@ int decode_JPEG(char image[256]) {
       marker[currentMarker].data[marker[currentMarker].length++] = currentChar;
     }
     
-    line++;
   }
   
 	fclose(imgPtr);
@@ -232,7 +231,10 @@ void decode_unpackDHT(struct MARKER *marker) {
     length--;
   }
 
+  printf("\n\nTime to read bytes\n\n");
+
   for (int i = 0; i < (sizeof(marker->bytes)/sizeof(marker->bytes[0])); i++) {
+    printf("\nNum of bytes at %d is %d\n", i, marker->numOfBytes[i]);
     if(marker->numOfBytes[i] == 0) continue;
 
     for (int j = 0; j < marker->numOfBytes[i]; j++) {
