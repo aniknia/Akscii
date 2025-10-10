@@ -63,5 +63,6 @@ img/testing/*
 
 # Logs
 logs/*
-!logs/example_short.txt
+!logs/example_summary.txt
+!logs/example_hex.txt
 !logs/example_verbose.txt
