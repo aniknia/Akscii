@@ -1,18 +1,20 @@
 #include "log.h"
 
-// TODO: Ideally these logs should capture the entire lifecycle of the program including the bootup
-// parameter setting and logging activation
+// Flags
+static int fileout = 0;
+static int verbose = 0;
+static int summary = 0;
+static int hex = 0;
 
-// TODO: Add some more logging options e.g.
-// Summary: Marker: SOI
-//          Length: 0
-// Verbose: Line: 0        Decimal: 255      Hex: FF       Character: �
-// Verbose Summary: FF DA 00 00 00 00 00 00 00 00
-//                        00 00 00 00 00 00 00 00
+static char logFile[256 + 64] = {0}; // image name is 256, time stamp is 64
+
+static int line = 0;
+
+// TODO: Ideally these logs should capture the entire lifecycle of the program including the bootup
 
 // TODO: Make the output more verbose by using vsnprintf
 
-void log_init(char *image, int fileoutFlag, int *flags) {
+void log_init(char *image, int *flags) {
   fileout = flags[0];
   summary = flags[1];
   hex = flags[2];
@@ -62,8 +64,8 @@ void log_init(char *image, int fileoutFlag, int *flags) {
 
 void log_status(int messageType, char *info) {
   char time[64];
-  char msgType[64];
   char msg[1024];
+  char message_type[64];
 
   snprintf(time, sizeof(time), "[%s%s%s] ", RED, get_time(), RESET);
 
@@ -71,23 +73,23 @@ void log_status(int messageType, char *info) {
   // Right now this is mitigated by using a viewer that processes ansi
   switch (messageType) {
     case 1:
-      snprintf(msgType, sizeof(msgType), "%sError%s: ", RED, RESET);
+      snprintf(message_type, sizeof(message_type), "%sError%s: ", RED, RESET);
       break;
     case 2:
-      snprintf(msgType, sizeof(msgType), "%sWarning%s: ", YEL, RESET);
+      snprintf(message_type, sizeof(message_type), "%sWarning%s: ", YEL, RESET);
       break;
     default:
-      snprintf(msgType, sizeof(msgType), "%sSuccess%s: ", GRN, RESET);
+      snprintf(message_type, sizeof(message_type), "%sSuccess%s: ", GRN, RESET);
   }
 
-  snprintf(msg, sizeof(msg), "%s%s%s", time, msgType, info);
+  snprintf(msg, sizeof(msg), "%s%s%s", time, message_type, info);
 
-  log_msg(msg);
+  log_message(msg);
 
   return;
 }
 
-void log_marker(struct MARKER marker){
+void log_marker(struct marker *marker){
 
   if (summary) log_summary(marker);
 
@@ -96,100 +98,100 @@ void log_marker(struct MARKER marker){
   return;
 }
 
-void log_summary(struct MARKER marker) {
+void log_summary(struct marker *marker) {
   char msg[1024];
-  char markerName[6];
+  char marker_name[6];
   
   // FIXME: remove redundant code if possible
 
-  switch (marker.code) {
-    case SOI: {
-      snprintf(markerName, sizeof(markerName), "SOI");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d", markerName, marker.length);
+  switch (marker->code) {
+    case MARKER_SOI: {
+      snprintf(marker_name, sizeof(marker_name), "SOI");
+      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d", marker_name, marker->length);
       break;
     }
-    case EOI: {
-      snprintf(markerName, sizeof(markerName), "EOI");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d", markerName, marker.length);
+    case MARKER_EOI: {
+      snprintf(marker_name, sizeof(marker_name), "EOI");
+      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d", marker_name, marker->length);
       break;
     }
-    case APP: {
-      snprintf(markerName, sizeof(markerName), "APP");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nIdentifier: %s\nVersion: %d.%d\nUnits: %d\nDensity: (%d, %d)\nThumbnail: (%d, %d)", markerName, marker.length, marker.identifier, marker.majorVerion, marker.minorVersion, marker.units, marker.densityX, marker.densityY, marker.thumbnailX, marker.thumbnailY);
+    case MARKER_APP: {
+      snprintf(marker_name, sizeof(marker_name), "APP");
+      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nIdentifier: %s\nVersion: %d.%d\nUnits: %d\nDensity: (%d, %d)\nThumbnail: (%d, %d)", marker_name, marker->length, marker->app.identifier, marker->app.major_version, marker->app.minor_version, marker->app.units, marker->app.density_x, marker->app.density_y, marker->app.thumbnail_x, marker->app.thumbnail_y);
       break;
     }
-    case APP1: {
-      snprintf(markerName, sizeof(markerName), "EXF");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d", markerName, marker.length);
+    case MARKER_APP1: {
+      snprintf(marker_name, sizeof(marker_name), "EXF");
+      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d", marker_name, marker->length);
       break;
     }
-    case DQT: {
+    case MARKER_DQT: {
       // TODO: Add quality tables
-      snprintf(markerName, sizeof(markerName), "DQT");
-      int tableLengthX = sizeof(marker.table) / sizeof(marker.table[0]);
-      int tableLengthY = sizeof(marker.table[0]) / sizeof(marker.table[0][0]);
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nTable: (%d, %d)", markerName, marker.length, tableLengthX, tableLengthY);
+      snprintf(marker_name, sizeof(marker_name), "DQT");
+      int table_length_x = sizeof(marker->dqt.table) / sizeof(marker->dqt.table[0]);
+      int table_length_y = sizeof(marker->dqt.table[0]) / sizeof(marker->dqt.table[0][0]);
+      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nTable: (%d, %d)", marker_name, marker->length, table_length_x, table_length_y);
       break;
     }
-    case SOF: {
+    case MARKER_SOF: {
       // TODO: Add factor tables
-      snprintf(markerName, sizeof(markerName), "SOF");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nPrecision: %d\nLines: %d\nSamples/Line: %d\nComponents: %d", markerName, marker.length, marker.precision, marker.lines, marker.samples, marker.components);
+      snprintf(marker_name, sizeof(marker_name), "SOF");
+      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nPrecision: %d\nLines: %d\nSamples/Line: %d\nComponents: %d", marker_name, marker->length, marker->sof.precision, marker->sof.lines, marker->sof.samples, marker->sof.components);
       break;
     }
-    case DHT: {
-      snprintf(markerName, sizeof(markerName), "DHT");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nClass: %d\nDestination: %d", markerName, marker.length, marker.class, marker.destination);
+    case MARKER_DHT: {
+      snprintf(marker_name, sizeof(marker_name), "DHT");
+      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d", marker_name, marker->length);
       break;
     }
-    case DRI: {
-      snprintf(markerName, sizeof(markerName), "DRI");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d", markerName, marker.length);
+    case MARKER_DRI: {
+      snprintf(marker_name, sizeof(marker_name), "DRI");
+      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d", marker_name, marker->length);
       break;
     }
-    case SOS: {
-      snprintf(markerName, sizeof(markerName), "SOS");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nComponents: %d\nSpectral Select Start: %d\nSpectral Select End: %d\nSuccessive Approx High: %d\nSuccessive Approx Low: %d", markerName, marker.length, marker.components, marker.spectralSelectStart, marker.spectralSelectEnd, marker.successiveHigh, marker.successiveLow);
+    case MARKER_SOS: {
+      snprintf(marker_name, sizeof(marker_name), "SOS");
+      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nComponents: %d\nSpectral Select Start: %d\nSpectral Select End: %d\nSuccessive Approx High: %d\nSuccessive Approx Low: %d", marker_name, marker->length, marker->sos.components, marker->sos.spectral_select_start, marker->sos.spectral_select_end, marker->sos.successive_high, marker->sos.successive_low);
       break;
     }
-    case DATA: {
-      snprintf(markerName, sizeof(markerName), "DATA");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d", markerName, marker.length);
+    case MARKER_DATA: {
+      snprintf(marker_name, sizeof(marker_name), "DATA");
+      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d", marker_name, marker->length);
       break;
     }
-    case COM: {
-      snprintf(markerName, sizeof(markerName), "COM");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d", markerName, marker.length);
+    case MARKER_COM: {
+      snprintf(marker_name, sizeof(marker_name), "COM");
+      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d", marker_name, marker->length);
       break;
     }
     default: {
-      snprintf(markerName, sizeof(markerName), "UNK");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d", markerName, marker.length);
+      snprintf(marker_name, sizeof(marker_name), "UNK");
+      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d", marker_name, marker->length);
       break;
     }
   }
 
-  log_msg(msg);
+  log_message(msg);
 }
 
-void log_hex(struct MARKER marker) {
+void log_hex(struct marker *marker) {
   char msg[1024];
-  char *currentPosition = msg;
-  char *endPosition = msg + sizeof(msg);
+  char *current_position = msg;
+  char *end_position = msg + sizeof(msg);
 
-  currentPosition += snprintf(currentPosition, endPosition - currentPosition, "%02X %02X ", FF, marker.code);
+  current_position += snprintf(current_position, end_position - current_position, "%02X %02X ", 0xFF, marker->code);
 
-  for (int i = 0; i < marker.length; i++) {
+  for (int i = 0; i < marker->length; i++) {
 
     if (i % 11 == 0 && i != 0) {
-      int written = snprintf(currentPosition, endPosition - currentPosition, "\n      ");
-      if (written < 0 || written >= endPosition - currentPosition) break;
-      currentPosition += written;
+      int written = snprintf(current_position, end_position - current_position, "\n      ");
+      if (written < 0 || written >= end_position - current_position) break;
+      current_position += written;
     }
 
-    int written = snprintf(currentPosition, endPosition - currentPosition, "%02X ", marker.data[i]);
-    if (written < 0 || written >= endPosition - currentPosition) break;
-    currentPosition += written;
+    int written = snprintf(current_position, end_position - current_position, "%02X ", marker->data[i]);
+    if (written < 0 || written >= end_position - current_position) break;
+    current_position += written;
   }
 
   size_t used = strlen(msg);
@@ -200,42 +202,42 @@ void log_hex(struct MARKER marker) {
     msg[sizeof(msg) - 2] = '\n';
   }
 
-  log_msg(msg);
+  log_message(msg);
 }
 
-void log_verbose(int currentChar) {
+void log_verbose(int current_character) {
   char msg[1024];
 
   line++;
 
   if (verbose == 1) {
-    snprintf(msg, sizeof(msg), "Line: %-8d Decimal: %-8d Hex: %-8X Character: %s", line, currentChar, currentChar, currentChar ? (char[]){ (char) currentChar, '\0'} : "none");
+    snprintf(msg, sizeof(msg), "Line: %-8d Decimal: %-8d Hex: %-8X Character: %s", line, current_character, current_character, current_character ? (char[]){ (char) current_character, '\0'} : "none");
 
-    log_msg(msg);
+    log_message(msg);
   }
 
   if (verbose == 2) {
-    snprintf(msg, sizeof(msg), "%02X", currentChar);
+    snprintf(msg, sizeof(msg), "%02X", current_character);
 
-    log_msg(msg);
+    log_message(msg);
   }
 
   return;
 }
 
-void log_msg(char* message) {
+void log_message(char* msg) {
   if(fileout) {
     FILE *fp;
     fp = fopen(logFile, "a");
 
-    char fileoutput[strlen(message) + 2];
-    snprintf(fileoutput, sizeof(fileoutput), "%s\n", message);
+    char fileoutput[strlen(msg) + 2];
+    snprintf(fileoutput, sizeof(fileoutput), "%s\n", msg);
 
     fputs(fileoutput, fp);
     fclose(fp);
   }
 
-  printf("%s\n", message);
+  printf("%s\n", msg);
 
   return;
 }

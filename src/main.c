@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
     default: log_status(0, "Running Akscii");
   }
 
-  log_init(image, fileout, flags);
+  log_init(image, flags);
   decode_JPEG(image);
 
   return 0;
