@@ -66,7 +66,8 @@ struct marker* marker_unpack_image (FILE *fp) {
   int current_character = 0;
   struct marker *marker_list = NULL;
 
-  // FIXME: see if i can remove the excess nesting
+  // TODO: see if i can remove the excess nesting
+  // TODO: add a secondary file check (FF D8)
   while ((current_character = getc(fp)) != EOF) {
     log_verbose(current_character);
 
