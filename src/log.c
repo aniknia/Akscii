@@ -141,7 +141,7 @@ void log_summary(struct marker *marker) {
     }
     case MARKER_DHT: {
       snprintf(marker_name, sizeof(marker_name), "DHT");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d", marker_name, marker->length);
+      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nNumber of Tables: %d", marker_name, marker->length, marker->dht.number_of_tables);
       break;
     }
     case MARKER_DRI: {
@@ -161,7 +161,7 @@ void log_summary(struct marker *marker) {
     }
     case MARKER_COM: {
       snprintf(marker_name, sizeof(marker_name), "COM");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d", marker_name, marker->length);
+      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nComment: %s", marker_name, marker->length, marker->com.comment);
       break;
     }
     default: {
@@ -226,18 +226,19 @@ void log_verbose(int current_character) {
 }
 
 void log_message(char* msg) {
+  char output[strlen(msg) + 3];
+  
+  if (!hex && summary) snprintf(output, sizeof(output), "%s\n\n", msg);
+  else snprintf(output, sizeof(output), "%s\n", msg);
+
   if(fileout) {
     FILE *fp;
     fp = fopen(logFile, "a");
-
-    char fileoutput[strlen(msg) + 2];
-    snprintf(fileoutput, sizeof(fileoutput), "%s\n", msg);
-
-    fputs(fileoutput, fp);
+    fputs(output, fp);
     fclose(fp);
   }
 
-  printf("%s\n", msg);
+  printf("%s", output);
 
   return;
 }
