@@ -55,51 +55,56 @@ struct marker {
   // Generic
   enum jpeg_marker code;
   int length;
-  int *data; // use malloc at runtime (check largest image/frame size)
+  unsigned char *data; // use malloc at runtime (check largest image/frame size)
 
   union {
     struct {
       char identifier[5];
-      int major_version;
-      int minor_version;
-      int units;
-      int density_x;
-      int density_y;
-      int thumbnail_x;
-      int thumbnail_y;
+      unsigned char major_version;
+      unsigned char minor_version;
+      unsigned char units;
+      unsigned char density_x;
+      unsigned char density_y;
+      unsigned char thumbnail_x;
+      unsigned char thumbnail_y;
     } app;
 
     struct {
-      int destination;
-      int table[8][8];
+      unsigned char destination;
+      unsigned char table[8][8];
     } dqt;
 
     struct {
-      int precision;
-      int lines;
-      int samples;
-      int components;
-      int *factor_table;
+      unsigned char precision;
+      unsigned char lines;
+      unsigned char samples;
+      unsigned char components;
+      unsigned char *factor_table;
     } sof;
 
     struct {
       int number_of_tables;
-      int *class;
-      int *destination;
-      int (*number_of_bytes)[16];
-      int ***bytes;
+      unsigned char *table_class;
+      unsigned char *table_destination;
+      unsigned char **number_of_bytes;
+      unsigned char ***bytes;
     } dht;
 
     struct {
-      int components;
-      int *component_selector;
-      int *dc_table_selector;
-      int *ac_table_selector;
-      int spectral_select_start;
-      int spectral_select_end;
-      int successive_high;
-      int successive_low;
+      unsigned char components;
+      unsigned char *component_selector;
+      unsigned char *dc_table_selector;
+      unsigned char *ac_table_selector;
+      unsigned char spectral_select_start;
+      unsigned char spectral_select_end;
+      unsigned char successive_high;
+      unsigned char successive_low;
     } sos;
+
+    struct {
+      int comment_length;
+      char *comment;
+    } com;
   };
 };
 
