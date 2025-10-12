@@ -7,7 +7,9 @@
 #include "log.h"
 #include "marker_struct.h"
 
-void marker_free(struct marker *marker);
-struct marker* marker_unpack_image(FILE *fp);
+#define HUFFMAN_CODE_LENGTH 16
+
+void marker_free(struct marker *marker, int marker_count);
+struct marker* marker_unpack_image(FILE *fp, int *marker_count);
 
 #endif

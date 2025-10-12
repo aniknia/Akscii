@@ -13,11 +13,12 @@ int decode_JPEG(char image[256]) {
     log_status(0, msg);
   }
 
-  struct marker *m = marker_unpack_image(image_pointer);
+  int marker_count = 0;
+  struct marker *m = marker_unpack_image(image_pointer, &marker_count);
   if (m == NULL) {
     return 1;
   }
-  marker_free(m);
+  marker_free(m, marker_count);
   
 	fclose(image_pointer);
 

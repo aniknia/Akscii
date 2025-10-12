@@ -161,7 +161,7 @@ void log_summary(struct marker *marker) {
     }
     case MARKER_COM: {
       snprintf(marker_name, sizeof(marker_name), "COM");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nComment: %s", marker_name, marker->length, marker->com.comment);
+      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nMessage: %s", marker_name, marker->length, marker->com.comment);
       break;
     }
     default: {
