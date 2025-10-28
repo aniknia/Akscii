@@ -202,23 +202,25 @@ int marker_unpack_APP(struct marker *m, FILE *fp) {
   int length = m->length - 2;
   int current_position = 2;
 
-  for (int i = 0; i < length; i++) {
-    current_character = marker_file_step_and_store(m, current_position++, fp);
+  for (int i = 0; i < 5; i++) {
     // I know this could be a list but i want the data to be more explicit
     // APP length should always be 16
-    switch (i) {
-      case 6: m->app.major_version = current_character; break;
-      case 7: m->app.minor_version = current_character; break;
-      case 8: m->app.units = current_character; break;
-      case 9: m->app.density_x = current_character << 8; break;
-      case 10: m->app.density_x |= current_character; break;
-      case 11: m->app.density_y = current_character << 8; break;
-      case 12: m->app.density_y |= current_character; break;
-      case 13: m->app.thumbnail_x = current_character; break;
-      case 14: m->app.thumbnail_y = current_character; break;
-      default: m->app.identifier[i] = current_character;
-    }
+    m->app.identifier[i] = marker_file_step_and_store(m, current_position++, fp);
+    length--;
   }
+
+  m->app.major_version = marker_file_step_and_store(m, current_position++, fp);
+  m->app.minor_version = marker_file_step_and_store(m, current_position++, fp);
+  m->app.units = marker_file_step_and_store(m, current_position++, fp);
+  m->app.density_x = marker_file_step_and_store(m, current_position++, fp);
+  m->app.density_x |= marker_file_step_and_store(m, current_position++, fp);
+  m->app.density_y = marker_file_step_and_store(m, current_position++, fp);
+  m->app.density_y |= marker_file_step_and_store(m, current_position++, fp);
+  m->app.thumbnail_x = marker_file_step_and_store(m, current_position++, fp);
+  m->app.thumbnail_y = marker_file_step_and_store(m, current_position++, fp);
+  length = length - 9;
+
+  if (length != 0) log_status(0, "deocode_unpack_DQT ran into an error");
 
   return 0;
 }

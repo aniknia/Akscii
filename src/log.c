@@ -127,10 +127,19 @@ void log_summary(struct marker *marker) {
     }
     case MARKER_DQT: {
       // TODO: Add quality tables
+      int count = 0;
       snprintf(marker_name, sizeof(marker_name), "DQT");
       int table_length_x = sizeof(marker->dqt.table) / sizeof(marker->dqt.table[0]);
       int table_length_y = sizeof(marker->dqt.table[0]) / sizeof(marker->dqt.table[0][0]);
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nTable: (%d, %d)", marker_name, marker->length, table_length_x, table_length_y);
+      char message_header[256];
+      count += snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nTable: (%d, %d)\nTable Values:\n", marker_name, marker->length, table_length_x, table_length_y);
+      for (int i = 0; i < table_length_x; i++) {
+        //count += snprintf(msg + count, sizeof(msg) - count, "             ");
+        for (int j = 0; j < table_length_y; j++) {
+          count += snprintf(msg + count, sizeof(msg) - count, "%02X ", marker->dqt.table[i][j]);
+        }
+        count += snprintf(msg + count, sizeof(msg) - count, "\n");
+      }
       break;
     }
     case MARKER_SOF: {
@@ -141,7 +150,7 @@ void log_summary(struct marker *marker) {
     }
     case MARKER_DHT: {
       snprintf(marker_name, sizeof(marker_name), "DHT");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nNumber of Tables: %d", marker_name, marker->length, marker->dht.number_of_tables);
+      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nNumber of Tables: %d\n", marker_name, marker->length, marker->dht.number_of_tables);
       break;
     }
     case MARKER_DRI: {
