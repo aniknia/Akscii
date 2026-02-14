@@ -18,6 +18,11 @@ int decode_JPEG(char image[256]) {
   if (m == NULL) {
     return 1;
   }
+
+  // huffman
+
+  // quant tables
+
   marker_free(m, marker_count);
   
 	fclose(image_pointer);
