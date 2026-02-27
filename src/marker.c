@@ -2,7 +2,6 @@
 
 
 void marker_init();
-void *marker_realloc(void *array, size_t array_size, int current_length);
 unsigned char marker_file_step_and_store(struct marker *m, int current_position, FILE *fp);
 int marker_unpack(struct marker *marker, FILE *fp);
 int marker_unpack_UKN(struct marker *marker, FILE *fp);
@@ -16,16 +15,6 @@ int marker_unpack_COM(struct marker *marker, FILE *fp);
 void marker_init() {
     return;
 };
-
-void *marker_realloc(void *array, size_t array_size, int current_length) {
-  void *tmp = realloc(array, array_size * (current_length + 1));
-  if (!tmp) {
-    log_status(1, "Realloc failed, exiting the program");
-    exit(1);
-  }
-
-  return tmp;
-}
 
 unsigned char marker_file_step_and_store(struct marker *m, int current_position, FILE *fp) {
   unsigned char current_character = getc(fp);
@@ -94,14 +83,14 @@ struct marker* marker_unpack_image (FILE *fp, int *marker_count) {
 
 
     if ((current_character == 0xFF) && (!scan_status)) {
-      marker_list = marker_realloc(marker_list, sizeof(*marker_list), *marker_count);
+      marker_list = helper_realloc(marker_list, sizeof(*marker_list), *marker_count);
 
       marker_unpack(&marker_list[*marker_count], fp);
       
       if (marker_list[(*marker_count)++].code == MARKER_SOS) {
         scan_status = 1;
 
-        marker_list = marker_realloc(marker_list, sizeof(*marker_list), *marker_count);
+        marker_list = helper_realloc(marker_list, sizeof(*marker_list), *marker_count);
 
         marker_list[*marker_count].code = MARKER_DATA;
         marker_list[*marker_count].length = 0;
@@ -112,7 +101,7 @@ struct marker* marker_unpack_image (FILE *fp, int *marker_count) {
         unsigned char nextChar = getc(fp);
         log_verbose(nextChar);
         if (nextChar == 0x00) {
-          marker_list[*marker_count].data = marker_realloc(marker_list[*marker_count].data, sizeof(*marker_list[*marker_count].data), marker_list[*marker_count].length);
+          marker_list[*marker_count].data = helper_realloc(marker_list[*marker_count].data, sizeof(*marker_list[*marker_count].data), marker_list[*marker_count].length);
           marker_list[*marker_count].data[marker_list[*marker_count].length++] = 0xFF;
           continue;
         }
@@ -121,7 +110,7 @@ struct marker* marker_unpack_image (FILE *fp, int *marker_count) {
         log_marker(&marker_list[(*marker_count)++]);
         continue;
       }
-      marker_list[*marker_count].data = marker_realloc(marker_list[*marker_count].data, sizeof(*marker_list[*marker_count].data), marker_list[*marker_count].length);
+      marker_list[*marker_count].data = helper_realloc(marker_list[*marker_count].data, sizeof(*marker_list[*marker_count].data), marker_list[*marker_count].length);
       marker_list[*marker_count].data[marker_list[*marker_count].length++] = current_character;
     } else {
       log_status(1, "The JPEG was malformed or there was an error in the code, check the logs");
@@ -299,22 +288,22 @@ int marker_unpack_DHT(struct marker *m, FILE *fp) {
   while (length > 0) {
     current_character = marker_file_step_and_store(m, current_position++, fp);
 
-    m->dht.table_class = marker_realloc(m->dht.table_class, sizeof(*m->dht.table_class), m->dht.number_of_tables);
+    m->dht.table_class = helper_realloc(m->dht.table_class, sizeof(*m->dht.table_class), m->dht.number_of_tables);
     m->dht.table_class[m->dht.number_of_tables] = current_character >> 4; // (current_character >> 4) & 0x0F
     if (m->dht.table_class[m->dht.number_of_tables] > 3) {
       log_status(1, "Error in DHT class");
       exit(1);
     }
 
-    m->dht.table_destination = marker_realloc(m->dht.table_destination, sizeof(*m->dht.table_destination), m->dht.number_of_tables);
+    m->dht.table_destination = helper_realloc(m->dht.table_destination, sizeof(*m->dht.table_destination), m->dht.number_of_tables);
     m->dht.table_destination[m->dht.number_of_tables] = current_character & 0x0F;
 
     length--;
 
-    m->dht.number_of_bytes = marker_realloc(m->dht.number_of_bytes, sizeof(*m->dht.number_of_bytes), m->dht.number_of_tables);
+    m->dht.number_of_bytes = helper_realloc(m->dht.number_of_bytes, sizeof(*m->dht.number_of_bytes), m->dht.number_of_tables);
     m->dht.number_of_bytes[m->dht.number_of_tables] = calloc(HUFFMAN_CODE_LENGTH, sizeof(unsigned char));
 
-    m->dht.bytes = marker_realloc(m->dht.bytes, sizeof(*m->dht.bytes), m->dht.number_of_tables);
+    m->dht.bytes = helper_realloc(m->dht.bytes, sizeof(*m->dht.bytes), m->dht.number_of_tables);
     m->dht.bytes[m->dht.number_of_tables] = calloc(HUFFMAN_CODE_LENGTH, sizeof(unsigned char *));
 
     for (int i = 0; i < HUFFMAN_CODE_LENGTH; i++) {
