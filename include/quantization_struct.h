@@ -1,0 +1,4 @@
+#ifndef QUANTIZATION_STRUCT_H
+#define QUANTIZATION_STRUCT_H
+
+#endif
