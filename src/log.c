@@ -149,8 +149,17 @@ void log_summary(struct marker *marker) {
       break;
     }
     case MARKER_DHT: {
+      int count = 0;
       snprintf(marker_name, sizeof(marker_name), "DHT");
-      snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nNumber of Tables: %d\n", marker_name, marker->length, marker->dht.number_of_tables);
+      count += snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nNumber of Tables: %d\n", marker_name, marker->length, marker->dht.number_of_tables);
+      for (int i = 0; i < marker->dht.number_of_tables; i++) {
+        count += snprintf(msg + count, sizeof(msg) - count, "Table %d Tc %d Th %d\n", i, marker->dht.table[i].table_class, marker->dht.table[i].table_destination);
+        count += snprintf(msg + count, sizeof(msg) - count, "Li: ");
+        for (int j = 0; j < HUFFMAN_CODE_LENGTH; j++) {
+          count += snprintf(msg + count, sizeof(msg) - count, "%02X ", marker->dht.table[i].number_of_bytes[j]);
+        }
+        count += snprintf(msg + count, sizeof(msg) - count, "\n");
+      }
       break;
     }
     case MARKER_DRI: {

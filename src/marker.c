@@ -34,25 +34,7 @@ void marker_free(struct marker *m, int marker_count) {
         m->sof.factor_table = NULL;
         break;
       }
-      case MARKER_DHT: {
-        free(m->dht.table_class);
-        m->dht.table_class = NULL;
-        free(m->dht.table_destination);
-        m->dht.table_destination = NULL;
-        free(m->dht.number_of_bytes);
-        m->dht.number_of_bytes = NULL;
-
-        for (int i = 0; i < m->dht.number_of_tables; i++) {
-          for (int j = 0; j < sizeof(*m->dht.bytes[i]) / sizeof(*m->dht.bytes[i][0]); j++) {
-            free(m->dht.bytes[i][j]);
-            m->dht.bytes[i][j] = NULL;
-          }
-          free(m->dht.bytes[i]);
-          m->dht.bytes[i] = NULL;
-        }
-
-        break;
-      }
+      case MARKER_DHT: break;
       case MARKER_SOS: {
         free(m->sos.component_selector);
         m->sos.component_selector = NULL;
@@ -280,49 +262,39 @@ int marker_unpack_DHT(struct marker *m, FILE *fp) {
   int current_position = 2;
 
   m->dht.number_of_tables = 0;
-  m->dht.table_class = NULL;
-  m->dht.table_destination = NULL;
-  m->dht.number_of_bytes = NULL;
-  m->dht.bytes = NULL;
 
   while (length > 0) {
     current_character = marker_file_step_and_store(m, current_position++, fp);
 
-    m->dht.table_class = helper_realloc(m->dht.table_class, sizeof(*m->dht.table_class), m->dht.number_of_tables);
-    m->dht.table_class[m->dht.number_of_tables] = current_character >> 4; // (current_character >> 4) & 0x0F
-    if (m->dht.table_class[m->dht.number_of_tables] > 3) {
+    m->dht.table[m->dht.number_of_tables].table_class = current_character >> 4; // (current_character >> 4) & 0x0F
+    if (m->dht.table[m->dht.number_of_tables].table_class > 3) {
       log_status(1, "Error in DHT class");
       exit(1);
     }
 
-    m->dht.table_destination = helper_realloc(m->dht.table_destination, sizeof(*m->dht.table_destination), m->dht.number_of_tables);
-    m->dht.table_destination[m->dht.number_of_tables] = current_character & 0x0F;
+    m->dht.table[m->dht.number_of_tables].table_destination = current_character & 0x0F;
 
     length--;
 
-    m->dht.number_of_bytes = helper_realloc(m->dht.number_of_bytes, sizeof(*m->dht.number_of_bytes), m->dht.number_of_tables);
-    m->dht.number_of_bytes[m->dht.number_of_tables] = calloc(HUFFMAN_CODE_LENGTH, sizeof(unsigned char));
-
-    m->dht.bytes = helper_realloc(m->dht.bytes, sizeof(*m->dht.bytes), m->dht.number_of_tables);
-    m->dht.bytes[m->dht.number_of_tables] = calloc(HUFFMAN_CODE_LENGTH, sizeof(unsigned char *));
-
     for (int i = 0; i < HUFFMAN_CODE_LENGTH; i++) {
       current_character = marker_file_step_and_store(m, current_position++, fp);
-      m->dht.number_of_bytes[m->dht.number_of_tables][i] = current_character;
-      m->dht.bytes[m->dht.number_of_tables][i] = malloc(m->dht.number_of_bytes[m->dht.number_of_tables][i]);
+      m->dht.table[m->dht.number_of_tables].number_of_bytes[i] = current_character;
+      m->dht.table[m->dht.number_of_tables].length += current_character;
       length--;
     }
 
+    unsigned char code = 0;
     for (int i = 0; i < HUFFMAN_CODE_LENGTH; i++) {
-      if (m->dht.number_of_bytes[m->dht.number_of_tables][i] == 0) continue;
-
-      for (int j = 0; j < m->dht.number_of_bytes[m->dht.number_of_tables][i]; j++) {
+      for (int j = 0; j < m->dht.table[m->dht.number_of_tables].number_of_bytes[i]; j++) {
         current_character = marker_file_step_and_store(m, current_position++, fp);
-        m->dht.bytes[m->dht.number_of_tables][i][j] = current_character;
+        m->dht.table[m->dht.number_of_tables].entry[i].length = m->dht.table[m->dht.number_of_tables].number_of_bytes[i];
+        m->dht.table[m->dht.number_of_tables].entry[i].code = code++;
+        m->dht.table[m->dht.number_of_tables].entry[i].character = current_character;
         length--;
       }
-      
+      code <<= 1;
     }
+
     m->dht.number_of_tables++;
   }
 

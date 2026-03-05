@@ -1,6 +1,13 @@
 #ifndef MARKER_STRUCT_H
 #define MARKER_STRUCT_H
 
+#include "huffman_struct.h"
+#include "quantization_struct.h"
+
+#define HUFFMAN_TABLE_LENGTH 8
+#define HUFFMAN_CODE_LENGTH 16
+#define HUFFMAN_CODE_CHARACTERS 256
+
 // Marker Codes
 enum jpeg_marker {
   // TODO: remove this type and find an alternative
@@ -84,10 +91,7 @@ struct marker {
 
     struct {
       int number_of_tables;
-      unsigned char *table_class;
-      unsigned char *table_destination;
-      unsigned char **number_of_bytes;
-      unsigned char ***bytes;
+      struct huffman_table table[8];
     } dht;
 
     struct {
