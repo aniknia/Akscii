@@ -208,7 +208,7 @@ int marker_unpack_DQT(struct marker *m, FILE *fp) {
   // FIXME: Make sure DQT is always 8x8
   // From Page 119 this can be 8 or 16 bits
   // For now this is fine
-  for (int i = 0; i < 64; i++) {
+  for (int i = 0; i < QUANTIZATION_LENGTH; i++) {
     current_character = marker_file_step_and_store(m, current_position++, fp);
     m->dqt.table[i] = current_character;
     length--;
