@@ -78,7 +78,7 @@ struct marker* marker_unpack_image (FILE *fp, int *marker_count) {
         marker_list[*marker_count].length = 0;
         marker_list[*marker_count].data = NULL;
       }
-    } else if (scan_status) {
+    } else if (scan_status) { // TODO: here is where the image data is
       if (current_character == 0xFF) {
         unsigned char nextChar = getc(fp);
         log_verbose(nextChar);
@@ -202,18 +202,16 @@ int marker_unpack_DQT(struct marker *m, FILE *fp) {
   int current_position = 2;
 
   current_character = marker_file_step_and_store(m, current_position++, fp);
-  m->dqt.destination = current_character;
+  m->dqt.destination = current_character; // FIX: this might be a high and low nibble for precision and table, check the text book
   length--;
 
   // FIXME: Make sure DQT is always 8x8
   // From Page 119 this can be 8 or 16 bits
   // For now this is fine
-  for (int i = 0; i < 8; i++) {
-    for (int j = 0; j < 8; j++) {
-      current_character = marker_file_step_and_store(m, current_position++, fp);
-      m->dqt.table[i][j] = current_character;
-      length--;
-    }
+  for (int i = 0; i < 64; i++) {
+    current_character = marker_file_step_and_store(m, current_position++, fp);
+    m->dqt.table[i] = current_character;
+    length--;
   }
 
   if (length != 0) log_status(0, "deocode_unpack_DQT ran into an error");

@@ -129,16 +129,13 @@ void log_summary(struct marker *marker) {
       // TODO: Add quality tables
       int count = 0;
       snprintf(marker_name, sizeof(marker_name), "DQT");
-      int table_length_x = sizeof(marker->dqt.table) / sizeof(marker->dqt.table[0]);
-      int table_length_y = sizeof(marker->dqt.table[0]) / sizeof(marker->dqt.table[0][0]);
       char message_header[256];
-      count += snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nTable: (%d, %d)\nTable Values:\n", marker_name, marker->length, table_length_x, table_length_y);
-      for (int i = 0; i < table_length_x; i++) {
-        //count += snprintf(msg + count, sizeof(msg) - count, "             ");
-        for (int j = 0; j < table_length_y; j++) {
-          count += snprintf(msg + count, sizeof(msg) - count, "%02X ", marker->dqt.table[i][j]);
+      count += snprintf(msg, sizeof(msg), "Marker: %s\nLength: %d\nTable Values:\n", marker_name, marker->length);
+      for (int i = 0; i < QUANTIZATION_LENGTH; i++) {
+        if (((i % 8) == 0) && i != 0) {
+          count += snprintf(msg + count, sizeof(msg) - count, "\n");
         }
-        count += snprintf(msg + count, sizeof(msg) - count, "\n");
+        count += snprintf(msg + count, sizeof(msg) - count, "%02X ", marker->dqt.table[i]);
       }
       break;
     }

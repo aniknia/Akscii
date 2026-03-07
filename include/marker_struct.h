@@ -2,11 +2,13 @@
 #define MARKER_STRUCT_H
 
 #include "huffman_struct.h"
-#include "quantization_struct.h"
 
 #define HUFFMAN_TABLE_LENGTH 8
 #define HUFFMAN_CODE_LENGTH 16
 #define HUFFMAN_CODE_CHARACTERS 256
+
+#define QUANTIZATION_LENGTH 64
+
 
 // Marker Codes
 enum jpeg_marker {
@@ -78,7 +80,7 @@ struct marker {
 
     struct {
       unsigned char destination;
-      unsigned char table[8][8];
+      unsigned char table[QUANTIZATION_LENGTH];
     } dqt;
 
     struct {
@@ -91,7 +93,7 @@ struct marker {
 
     struct {
       int number_of_tables;
-      struct huffman_table table[8];
+      struct huffman_table table[HUFFMAN_TABLE_LENGTH];
     } dht;
 
     struct {

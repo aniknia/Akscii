@@ -8,7 +8,6 @@
 #include "log.h"
 #include "marker_struct.h"
 #include "marker.h"
-#include "quantization.h"
 
 int decode_JPEG(char image[256]);
 
