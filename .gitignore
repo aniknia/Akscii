@@ -61,6 +61,7 @@ dkms.conf
 # Images for testing
 img/testing/*
 img/output/*
+img/input/*
 
 # Logs
 logs/*
