@@ -10,6 +10,14 @@ static char logFile[256 + 64] = {0}; // image name is 256, time stamp is 64
 
 static int line = 0;
 
+static int msg_length = 2048
+//static int msg_length = 65536;
+// This is only used for reading out the huffman tables
+// Is this number huge? Yes
+// Is it a magic numher? Also yes
+// Why did i do this as opposed to using the realloc helper I wrote?
+// I dont know but I just want to finish this project so magic it shall stay
+
 // TODO: Ideally these logs should capture the entire lifecycle of the program including the bootup
 
 // TODO: Make the output more verbose by using vsnprintf
@@ -37,7 +45,7 @@ void log_init(char *image, int *flags) {
 
     FILE *fp;
 
-    char msg[1024];
+    char msg[msg_length];
 
     fp = fopen(logFile, "wx");
     if (fp == NULL) {
@@ -64,7 +72,7 @@ void log_init(char *image, int *flags) {
 
 void log_status(int messageType, char *info) {
   char time[64];
-  char msg[1024];
+  char msg[msg_length];
   char message_type[64];
 
   snprintf(time, sizeof(time), "[%s%s%s] ", RED, get_time(), RESET);
@@ -99,7 +107,7 @@ void log_marker(struct marker *marker){
 }
 
 void log_summary(struct marker *marker) {
-  char msg[1024];
+  char msg[msg_length];
   char marker_name[6];
   
   // FIXME: remove redundant code if possible
@@ -152,10 +160,18 @@ void log_summary(struct marker *marker) {
       for (int i = 0; i < marker->dht.number_of_tables; i++) {
         count += snprintf(msg + count, sizeof(msg) - count, "Table %d Tc %d Th %d\n", i, marker->dht.table[i].table_class, marker->dht.table[i].table_destination);
         count += snprintf(msg + count, sizeof(msg) - count, "Li: ");
+        int entries = 0;
         for (int j = 0; j < HUFFMAN_CODE_LENGTH; j++) {
           count += snprintf(msg + count, sizeof(msg) - count, "%02X ", marker->dht.table[i].number_of_bytes[j]);
+          entries += marker->dht.table[i].number_of_bytes[j];
         }
+        // Prints the Huffman codes, if you want this, use the larger msg size up top
+        /*
         count += snprintf(msg + count, sizeof(msg) - count, "\n");
+        for(int j = 0; j < entries; j++) {
+          count += snprintf(msg + count, sizeof(msg) - count, "Entry: %4d Length: %2hhu Code: %16b Character: %hhu\n", j, marker->dht.table[i].entry[j].length, marker->dht.table[i].entry[j].code, marker->dht.table[i].entry[j].character);
+        }
+        */
       }
       break;
     }
@@ -190,7 +206,7 @@ void log_summary(struct marker *marker) {
 }
 
 void log_hex(struct marker *marker) {
-  char msg[1024];
+  char msg[msg_length];
   char *current_position = msg;
   char *end_position = msg + sizeof(msg);
 
@@ -221,7 +237,7 @@ void log_hex(struct marker *marker) {
 }
 
 void log_verbose(int current_character) {
-  char msg[1024];
+  char msg[msg_length];
 
   line++;
 

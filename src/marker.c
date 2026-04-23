@@ -274,25 +274,29 @@ int marker_unpack_DHT(struct marker *m, FILE *fp) {
 
     length--;
 
+    int number_of_entries = 0;
     for (int i = 0; i < HUFFMAN_CODE_LENGTH; i++) {
       current_character = marker_file_step_and_store(m, current_position++, fp);
+      if (current_character != 0) number_of_entries++;
       m->dht.table[m->dht.number_of_tables].number_of_bytes[i] = current_character;
       m->dht.table[m->dht.number_of_tables].length += current_character;
       length--;
     }
 
-    unsigned char code = 0;
+    unsigned int code = 0;
+    int step = 0;
     for (int i = 0; i < HUFFMAN_CODE_LENGTH; i++) {
+      code <<= 1;
       for (int j = 0; j < m->dht.table[m->dht.number_of_tables].number_of_bytes[i]; j++) {
         current_character = marker_file_step_and_store(m, current_position++, fp);
-        m->dht.table[m->dht.number_of_tables].entry[i].length = m->dht.table[m->dht.number_of_tables].number_of_bytes[i];
-        m->dht.table[m->dht.number_of_tables].entry[i].code = code++;
-        m->dht.table[m->dht.number_of_tables].entry[i].character = current_character;
+        m->dht.table[m->dht.number_of_tables].entry[step].length = i + 1;
+        m->dht.table[m->dht.number_of_tables].entry[step].code = code++;
+        m->dht.table[m->dht.number_of_tables].entry[step].character = current_character;
+        step++;
         length--;
       }
-      code <<= 1;
     }
-
+    
     m->dht.number_of_tables++;
   }
 

@@ -3,7 +3,7 @@
 
 struct huffman_entry {
   unsigned char length;
-  unsigned char code;
+  unsigned int code;
   unsigned char character;
 };
 
