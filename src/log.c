@@ -10,7 +10,9 @@ static char logFile[256 + 64] = {0}; // image name is 256, time stamp is 64
 
 static int line = 0;
 
-static int msg_length = 2048
+static int msg_length = 2048;
+
+static int huffman_verbose = 0;
 //static int msg_length = 65536;
 // This is only used for reading out the huffman tables
 // Is this number huge? Yes
@@ -165,13 +167,15 @@ void log_summary(struct marker *marker) {
           count += snprintf(msg + count, sizeof(msg) - count, "%02X ", marker->dht.table[i].number_of_bytes[j]);
           entries += marker->dht.table[i].number_of_bytes[j];
         }
-        // Prints the Huffman codes, if you want this, use the larger msg size up top
-        /*
         count += snprintf(msg + count, sizeof(msg) - count, "\n");
-        for(int j = 0; j < entries; j++) {
-          count += snprintf(msg + count, sizeof(msg) - count, "Entry: %4d Length: %2hhu Code: %16b Character: %hhu\n", j, marker->dht.table[i].entry[j].length, marker->dht.table[i].entry[j].code, marker->dht.table[i].entry[j].character);
+
+        // Prints the Huffman codes, if you want this, use the larger msg size up top
+        if(huffman_verbose) {
+          for(int j = 0; j < entries; j++) {
+            count += snprintf(msg + count, sizeof(msg) - count, "Entry: %4d Length: %2hhu Code: %16b Character: %hhu\n", j, marker->dht.table[i].entry[j].length, marker->dht.table[i].entry[j].code, marker->dht.table[i].entry[j].character);
+          }
         }
-        */
+        
       }
       break;
     }
